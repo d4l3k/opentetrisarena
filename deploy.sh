@@ -7,6 +7,7 @@ TARGET_BRANCH="gh-pages"
 function doCompile {
   npm run deps
   npm run build
+  cp index.html out/index.html
 }
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
@@ -31,17 +32,17 @@ cd ..
 # Clean out existing contents
 rm -rf out/**/* || exit 0
 
-cd out
-
 # Run our compile script
 doCompile
 
-git status
-git add index.html
 
 # Now let's go have some fun with the cloned repo
+cd out
 git config user.name "Travis CI"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
+
+git status
+git add index.html
 
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
 if [ -z `git diff --exit-code --cached` ]; then
