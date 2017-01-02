@@ -7,6 +7,8 @@ TARGET_BRANCH="gh-pages"
 function doCompile {
   npm run deps
   npm run build
+  npm run test
+  mkdir -p out
   cp index.html out/index.html
 }
 
