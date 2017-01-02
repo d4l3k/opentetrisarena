@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "ES5",
+        "module": "commonjs",
+        "experimentalDecorators": true,
+        "noImplicitReturns": true,
+        "pretty": true,
+        "sourceMap": true,
+        "lib": ["es2017", "dom"]
+    },
+    "exclude": [
+        "bower_components",
+        "node_modules"
+    ]
+}
