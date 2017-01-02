@@ -1,0 +1,65 @@
+
+<dom-module id="tetris-board">
+  <template>
+    <style>
+      :host {
+        display: flex;
+        color: var(--color);
+      }
+      :host > div {
+        margin: 16px;
+      }
+      .alert {
+        color: #dc322f;
+      }
+      [over] {
+        opacity: 0.5;
+      }
+      .row {
+        display: flex;
+      }
+      .block {
+        display: inline-block;
+        height: 30px;
+        width: 30px;
+      }
+      .border {
+        border: 2px solid var(--color);
+      }
+      /*
+      .row + .row {
+        border-top: 1px solid #ccc;
+      }
+      .block + .block {
+        border-left: 1px solid #ccc;
+      }
+      */
+    </style>
+    <div class="board">
+      <div class="border" over$="[[state.over]]">
+        <template is="dom-repeat" items="[[state.grid]]">
+          <div class="row">
+            <template is="dom-repeat" items="[[item]]">
+              <div class="block" style$="{{computeColor(item)}}">
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="info">
+      <div over$="[[state.over]]">
+        <h3>Upcoming</h3>
+        <template is="dom-repeat" items="[[state.upcomingPieces]]">
+          <span>[[item.name]]</span>
+        </template>
+        <h3>Saved</h3>
+        <span>[[state.savedPiece.name]]</span>
+      </div>
+
+      <template is="dom-if" if="[[state.over]]">
+        <h1 class="alert">[[state.message]]</h1>
+      </template>
+    </div>
+  </template>
+</dom-module>

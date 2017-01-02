@@ -1,10 +1,30 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/polymer-ts/polymer-ts.html">
 
+<link rel="import" href="../tetris-board.html">
+
 <dom-module id="opentetrisarena-app">
   <template>
     <style>
+      :host {
+        --color: #657b83;
+        --font: 'Roboto', sans-serif, monospace;
+        --link-color: #268bd2;
+        color: var(--color);
+        font-family: var(--font);
+        display: block;
+        margin: 16px;
+      }
+      a {
+        color: var(--link-color);
+      }
     </style>
-    <h1>Tetris</h1>
+    <h1>Open Tetris Arena</h1>
+    <tetris-board state="[[state]]"></tetris-board>
+    <template is="dom-if" if="[[!state]]">
+      <button on-tap="start">Start</button>
+    </template>
+    <p><a href="https://fn.lc">Made by Tristan Rice</a></p>
+    <p><a href="https://github.com/d4l3k/opentetrisarena">Source Code</a></p>
   </template>
 </dom-module>
