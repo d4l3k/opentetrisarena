@@ -31,6 +31,8 @@ cd ..
 # Clean out existing contents
 rm -rf out/**/* || exit 0
 
+cd out
+
 # Run our compile script
 doCompile
 
