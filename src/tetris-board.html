@@ -3,14 +3,11 @@
   <template>
     <style>
       :host {
-        display: flex;
+        display: inline-block;
         color: var(--color);
       }
       :host > div {
         margin: 16px;
-      }
-      .alert {
-        color: #dc322f;
       }
       [over] {
         opacity: 0.5;
@@ -23,8 +20,15 @@
         height: 30px;
         width: 30px;
       }
+      [small] .block {
+        height: 5px;
+        width: 5px;
+      }
       .border {
         border: 2px solid var(--color);
+      }
+      .border[small] {
+        border-width: 1px;
       }
       /*
       .row + .row {
@@ -35,30 +39,15 @@
       }
       */
     </style>
-    <div class="board">
-      <div class="border" over$="[[state.over]]">
-        <template is="dom-repeat" items="[[state.grid]]">
-          <div class="row">
-            <template is="dom-repeat" items="[[item]]">
-              <div class="block" style$="{{computeColor(item)}}">
-              </div>
-            </template>
-          </div>
-        </template>
-      </div>
-    </div>
-    <div class="info">
-      <div over$="[[state.over]]">
-        <h3>Upcoming</h3>
-        <template is="dom-repeat" items="[[state.upcomingPieces]]">
-          <span>[[item.name]]</span>
-        </template>
-        <h3>Saved</h3>
-        <span>[[state.savedPiece.name]]</span>
-      </div>
 
-      <template is="dom-if" if="[[state.over]]">
-        <h1 class="alert">[[state.message]]</h1>
+    <div class="border" small$="[[small]]" over$="[[state.over]]">
+      <template is="dom-repeat" items="[[state.grid]]">
+        <div class="row">
+          <template is="dom-repeat" items="[[item]]">
+            <div class="block" style$="{{computeColor(item)}}">
+            </div>
+          </template>
+        </div>
       </template>
     </div>
   </template>

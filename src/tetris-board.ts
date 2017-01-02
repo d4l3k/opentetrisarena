@@ -14,6 +14,8 @@ const COLOR_MAP = {
 
 @component('tetris-board') class TetrisBoard extends polymer.Base {
   @property({type: Object}) state: BoardState;
+  @property({type: Array}) subStates: BoardState[];
+  @property({type: Boolean, value: false}) small: boolean;
 
   public computeColor(item) {
     if (!item) {

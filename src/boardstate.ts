@@ -6,6 +6,7 @@ export interface Piece {
 }
 
 export interface BoardState {
+  id?: string
   savedPiece?: Piece
   currentPiece?: Piece
   upcomingPieces: Piece[]

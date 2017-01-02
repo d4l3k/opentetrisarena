@@ -198,6 +198,7 @@ export class TetrisEngine implements BoardState {
   public place() {
     while (this.movePiece(0, 1, 0)) {
     }
+    this.tick();
   }
 
   private clearPattern(pos: Position, m: number[][]) {

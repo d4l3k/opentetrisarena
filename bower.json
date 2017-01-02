@@ -3,7 +3,10 @@
   "main": "index.html",
   "dependencies": {
     "polymer": "2.0-preview",
-    "polymer-ts": "^0.1.28"
+    "polymer-ts": "^0.1.28",
+    "webrtc-lobby-elements": "^1.0.3",
+    "paper-input": "^1.1.22",
+    "iron-localstorage": "^1.0.6"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
