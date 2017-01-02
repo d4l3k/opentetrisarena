@@ -34,6 +34,8 @@ rm -rf out/**/* || exit 0
 # Run our compile script
 doCompile
 
+git status
+
 # Now let's go have some fun with the cloned repo
 cd out
 git config user.name "Travis CI"
@@ -47,7 +49,7 @@ fi
 
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
-git add .
+git add index.html
 git commit -m "Deploy to GitHub Pages: ${SHA}"
 
 # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
