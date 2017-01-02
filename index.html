@@ -10122,6 +10122,7 @@ var TetrisEngine = (function () {
         this.currentPiece = this.savedPiece;
         this.savedPiece = cur;
         this.resetPosition();
+        this.tick();
     };
     TetrisEngine.prototype.left = function () { this.movePiece(-1, 0, 0); };
     TetrisEngine.prototype.right = function () { this.movePiece(1, 0, 0); };
@@ -10226,7 +10227,8 @@ var TetrisEngine = (function () {
         if (!this.currentPiece) {
             return;
         }
-        this.position = { x: WIDTH / 2 - 2, y: -1, rotation: 0 };
+        var offset = Math.ceil(matrixWidth(this.currentPiece.block) / 2);
+        this.position = { x: WIDTH / 2 - offset, y: -1, rotation: 0 };
     };
     TetrisEngine.prototype.updatedUpcoming = function () {
         while (this.upcomingPieces.length < 5) {
