@@ -1,0 +1,27 @@
+{
+  "name": "opentetrisarena",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:d4l3k/opentetrisarena.git",
+  "author": "Tristan Rice <rice@fn.lc>",
+  "license": "MIT",
+  "scripts": {
+    "deps": "npm install && bower install",
+    "build": "browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --inline-scripts --inline-css --out-html index.html app.html",
+    "watch": "watchify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --debug --verbose",
+    "test": "tsc && mocha $(find . -name '*_test.js' ! -path './node_modules/*' ! -path './bower_components/*'| tr -s '\n' ' ')"
+  },
+  "dependencies": {
+    "@types/chai": "^3.4.34",
+    "@types/mocha": "^2.2.33",
+    "@types/webrtc": "0.0.21",
+    "bower": "^1.8.0",
+    "browserify": "^13.1.1",
+    "chai": "^3.5.0",
+    "mocha": "^3.1.2",
+    "tsify": "^3.0.0",
+    "typescript": "^2.1.4",
+    "vulcanize": "^1.15.2",
+    "watchify": "^3.8.0"
+  }
+}
