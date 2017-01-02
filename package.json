@@ -6,6 +6,7 @@
   "author": "Tristan Rice <rice@fn.lc>",
   "license": "MIT",
   "scripts": {
+    "build": "browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --inline-scripts --inline-css --out-html index.html app.html",
     "watch": "watchify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --debug --verbose",
     "test": "tsc && mocha $(find . -name '*_test.js' ! -path './node_modules/*' ! -path './bower_components/*'| tr -s '\n' ' ')"
   },
