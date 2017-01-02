@@ -185,6 +185,7 @@ export class TetrisEngine implements BoardState {
     this.currentPiece = this.savedPiece;
     this.savedPiece = cur;
     this.resetPosition();
+    this.tick();
   }
 
   public left() { this.movePiece(-1, 0, 0); }
@@ -306,7 +307,8 @@ export class TetrisEngine implements BoardState {
       return;
     }
 
-    this.position = {x: WIDTH / 2 - 2, y: -1, rotation: 0};
+    const offset = Math.ceil(matrixWidth(this.currentPiece.block) / 2);
+    this.position = {x: WIDTH / 2 - offset, y: -1, rotation: 0};
   }
 
   private updatedUpcoming() {
