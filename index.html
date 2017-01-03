@@ -8701,6 +8701,17 @@ is resolved. Local storage will be blown away.
       }
       .border[small] {
         border-width: 1px;
+        margin: 2px;
+      }
+      .border[small][selected] {
+        border-width: 3px;
+        margin: 0;
+      }
+      .progress {
+        background-color: #d33682;
+        height: 2px;
+        width: 0;
+        margin: 0;
       }
       /*
       .row + .row {
@@ -8712,7 +8723,7 @@ is resolved. Local storage will be blown away.
       */
     </style>
 
-    <div class="border" small$="[[small]]" over$="[[state.over]]">
+    <div class="border" selected$="[[selected]]" small$="[[small]]" over$="[[state.over]]">
       <template is="dom-repeat" items="[[state.grid]]">
         <div class="row">
           <template is="dom-repeat" items="[[item]]">
@@ -8722,6 +8733,7 @@ is resolved. Local storage will be blown away.
         </div>
       </template>
     </div>
+    <div class="progress" style="[[progressWidth(progress, selected)]]"></div>
   </template>
 </dom-module>
 <script>///<reference path="./bower_components/polymer-ts/polymer-ts.d.ts" />
@@ -9286,7 +9298,7 @@ WebRTCLobbyHost.register();
           <template is="dom-repeat" items="[[subStates]]">
             <div inline="">
               <h4>[[playerName(item.id)]]</h4>
-              <tetris-board state="[[item]]" small=""></tetris-board>
+              <tetris-board selected="[[isTarget(item.id, targetPlayer)]]" progress="[[targetProgress]]" state="[[item]]" small=""></tetris-board>
             </div>
           </template>
 
@@ -9634,6 +9646,8 @@ var tetris_engine_1 = require("../tetris-engine");
 var webrtc_config_1 = require("../webrtc-config");
 var BOARD_UPDATE_TIME = 1000;
 var BOARD_UNBREAKABLE_INTERVAL = 12000;
+var PLAYER_TARGET_TIME = 4000;
+var PLAYER_TARGET_TICKS = 80;
 var OpenTetrisArena = (function (_super) {
     __extends(OpenTetrisArena, _super);
     function OpenTetrisArena() {
@@ -9650,6 +9664,7 @@ var OpenTetrisArena = (function (_super) {
         _this.nextPlayerID = 1;
         _this.players = {};
         _this.remotePlayers = {};
+        _this.targetProgress = 0;
         return _this;
     }
     OpenTetrisArena.prototype.start = function () {
@@ -9660,7 +9675,7 @@ var OpenTetrisArena = (function (_super) {
         this.state.onLineBreak = function (count) {
             count--;
             if (count > 0) {
-                var to = _this.randomOtherPlayer();
+                var to = _this.targetPlayer;
                 if (to) {
                     _this.conn.send({ sendLines: { to: to, count: count } }, true);
                 }
@@ -9677,6 +9692,32 @@ var OpenTetrisArena = (function (_super) {
         this.lastUnbreakableInterval = setInterval(function () {
             _this.broadcast({ addLines: { count: 1, solid: true } }, true);
         }, BOARD_UNBREAKABLE_INTERVAL);
+        var tick = 0;
+        this.lastPlayerTargetInterval = setInterval(function () {
+            if (tick === 0) {
+                _this.targetPlayer = _this.randomTargetCandidate();
+            }
+            _this.targetProgress = (PLAYER_TARGET_TICKS - tick) / PLAYER_TARGET_TICKS;
+            tick = (tick + 1) % PLAYER_TARGET_TICKS;
+        }, PLAYER_TARGET_TIME / PLAYER_TARGET_TICKS);
+    };
+    OpenTetrisArena.prototype.isTarget = function (id, targetPlayer) {
+        return targetPlayer === id;
+    };
+    OpenTetrisArena.prototype.randomTargetCandidate = function () {
+        var _this = this;
+        var candidates = [];
+        for (var id in this.players) {
+            if (id === this.playerID || this.players[id].over) {
+                continue;
+            }
+            candidates.push(id);
+        }
+        if (candidates.length <= 1) {
+            return candidates[0];
+        }
+        candidates.filter(function (id) { return id != _this.targetPlayer; });
+        return candidates[Math.floor(candidates.length * Math.random())];
     };
     OpenTetrisArena.prototype.randomOtherPlayer = function () {
         var players = [];
@@ -10001,6 +10042,12 @@ var TetrisBoard = (function (_super) {
         }
         return 'background-color: ' + COLOR_MAP[item.color];
     };
+    TetrisBoard.prototype.progressWidth = function (progress, selected) {
+        if (!selected) {
+            return '';
+        }
+        return 'width: ' + (56 * progress) + 'px';
+    };
     return TetrisBoard;
 }(polymer.Base));
 __decorate([
@@ -10012,6 +10059,12 @@ __decorate([
 __decorate([
     property({ type: Boolean, value: false })
 ], TetrisBoard.prototype, "small", void 0);
+__decorate([
+    property({ type: Boolean, value: false })
+], TetrisBoard.prototype, "selected", void 0);
+__decorate([
+    property({ type: Number, value: 0 })
+], TetrisBoard.prototype, "progress", void 0);
 TetrisBoard = __decorate([
     component('tetris-board')
 ], TetrisBoard);
