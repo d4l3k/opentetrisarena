@@ -29,6 +29,17 @@
       }
       .border[small] {
         border-width: 1px;
+        margin: 2px;
+      }
+      .border[small][selected] {
+        border-width: 3px;
+        margin: 0;
+      }
+      .progress {
+        background-color: #d33682;
+        height: 2px;
+        width: 0;
+        margin: 0;
       }
       /*
       .row + .row {
@@ -40,7 +51,7 @@
       */
     </style>
 
-    <div class="border" small$="[[small]]" over$="[[state.over]]">
+    <div class="border" selected$="[[selected]]" small$="[[small]]" over$="[[state.over]]">
       <template is="dom-repeat" items="[[state.grid]]">
         <div class="row">
           <template is="dom-repeat" items="[[item]]">
@@ -50,5 +61,6 @@
         </div>
       </template>
     </div>
+    <div class="progress" style="[[progressWidth(progress, selected)]]"></div>
   </template>
 </dom-module>

@@ -10,6 +10,8 @@ import {RTC_CONFIG} from '../webrtc-config';
 
 const BOARD_UPDATE_TIME = 1000;
 const BOARD_UNBREAKABLE_INTERVAL = 12000;
+const PLAYER_TARGET_TIME = 4000;
+const PLAYER_TARGET_TICKS = 80;
 
 @component('opentetrisarena-app')
 class OpenTetrisArena extends polymer.Base {
@@ -35,6 +37,10 @@ class OpenTetrisArena extends polymer.Base {
   private lastInterval;
   private lastUnbreakableInterval;
 
+  private targetProgress: number = 0;
+  private targetPlayer: string;
+  private lastPlayerTargetInterval;
+
   start() {
     this.stop();
     this.message = null;
@@ -43,7 +49,7 @@ class OpenTetrisArena extends polymer.Base {
     this.state.onLineBreak = (count: number) => {
       count--;
       if (count > 0) {
-        const to = this.randomOtherPlayer();
+        const to = this.targetPlayer;
         if (to) {
           this.conn.send({sendLines: {to, count}}, true);
         }
@@ -63,6 +69,34 @@ class OpenTetrisArena extends polymer.Base {
     this.lastUnbreakableInterval = setInterval(() => {
       this.broadcast({addLines: {count: 1, solid: true}}, true);
     }, BOARD_UNBREAKABLE_INTERVAL);
+
+    let tick = 0;
+    this.lastPlayerTargetInterval = setInterval(() => {
+      if (tick === 0) {
+        this.targetPlayer = this.randomTargetCandidate();
+      }
+      this.targetProgress = (PLAYER_TARGET_TICKS - tick) / PLAYER_TARGET_TICKS;
+      tick = (tick + 1) % PLAYER_TARGET_TICKS;
+    }, PLAYER_TARGET_TIME / PLAYER_TARGET_TICKS);
+  }
+
+  isTarget(id: string, targetPlayer: string): boolean {
+    return targetPlayer === id;
+  }
+
+  randomTargetCandidate(): string {
+    let candidates = [];
+    for (let id in this.players) {
+      if (id === this.playerID || this.players[id].over) {
+        continue;
+      }
+      candidates.push(id);
+    }
+    if (candidates.length <= 1) {
+      return candidates[0];
+    }
+    candidates.filter((id) => { return id != this.targetPlayer; });
+    return candidates[Math.floor(candidates.length * Math.random())];
   }
 
   randomOtherPlayer(): string {
@@ -286,7 +320,7 @@ class OpenTetrisArena extends polymer.Base {
         }
         conn.send({addLines: {count: msg.sendLines.count, solid: false}}, true);
         const remotePlayer = this.remotePlayers[playerID];
-        remotePlayer.linesSent+=msg.sendLines.count;
+        remotePlayer.linesSent += msg.sendLines.count;
       }
     };
 

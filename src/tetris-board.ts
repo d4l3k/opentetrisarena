@@ -18,6 +18,8 @@ const COLOR_MAP = {
   @property({type: Object}) state: BoardState;
   @property({type: Array}) subStates: BoardState[];
   @property({type: Boolean, value: false}) small: boolean;
+  @property({type: Boolean, value: false}) selected: boolean;
+  @property({type: Number, value: 0}) progress: number;
 
   public computeColor(item) {
     if (!item) {
@@ -25,6 +27,12 @@ const COLOR_MAP = {
     }
     return 'background-color: ' + COLOR_MAP[item.color];
   }
+
+  public progressWidth(progress, selected) {
+    if (!selected) {
+      return '';
+    }
+    return 'width: ' + (56 * progress) + 'px'; }
 }
 
 TetrisBoard.register();

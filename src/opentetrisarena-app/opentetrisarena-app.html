@@ -86,7 +86,9 @@
           <template is="dom-repeat" items="[[subStates]]">
             <div inline>
               <h4>[[playerName(item.id)]]</h4>
-              <tetris-board state="[[item]]" small></tetris-board>
+              <tetris-board selected="[[isTarget(item.id, targetPlayer)]]"
+                            progress="[[targetProgress]]"
+                            state="[[item]]" small></tetris-board>
             </div>
           </template>
 
