@@ -9,6 +9,7 @@ import {TetrisEngine} from '../tetris-engine';
 import {RTC_CONFIG} from '../webrtc-config';
 
 const BOARD_UPDATE_TIME = 1000;
+const BOARD_UNBREAKABLE_INTERVAL = 12000;
 
 @component('opentetrisarena-app')
 class OpenTetrisArena extends polymer.Base {
@@ -30,6 +31,7 @@ class OpenTetrisArena extends polymer.Base {
   private message: string;
 
   private lastInterval;
+  private lastUnbreakableInterval;
 
   start() {
     this.stop();
@@ -46,15 +48,21 @@ class OpenTetrisArena extends polymer.Base {
         this.stop();
       }
     }, BOARD_UPDATE_TIME);
+
+    this.lastUnbreakableInterval = setInterval(() => {
+      this.broadcast({addLines: {count: 1, solid: true}}, true);
+    }, BOARD_UNBREAKABLE_INTERVAL);
   }
 
   stop() {
-    if (!this.lastInterval) {
-      return;
+    if (this.lastInterval) {
+      clearInterval(this.lastInterval);
+      this.lastInterval = null;
     }
-
-    clearInterval(this.lastInterval);
-    this.lastInterval = null;
+    if (this.lastUnbreakableInterval) {
+      clearInterval(this.lastUnbreakableInterval);
+      this.lastUnbreakableInterval = null;
+    }
   }
 
   sendStart() {
@@ -191,6 +199,10 @@ class OpenTetrisArena extends polymer.Base {
         this.players = null;
         this.players = msg.players;
       }
+
+      if (msg.addLines) {
+        this.state.addLinesToBottom(msg.addLines.count, msg.addLines.solid);
+      }
     };
 
     conn.onClose = () => {
@@ -221,6 +233,8 @@ class OpenTetrisArena extends polymer.Base {
           name: msg.hello.name,
           wins: 0,
           games: 0,
+          linesSent: 0,
+          timeAlive: 0,
           over: true,
         };
         this.broadcastPlayers();

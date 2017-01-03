@@ -136,12 +136,18 @@ export const matrix = {
   rotate: matrixRotate,
 };
 
+interface LineRequest {
+  count: number
+  solid: boolean
+}
+
 export class TetrisEngine implements BoardState {
   public grid: Cell[][];
   public savedPiece: Piece;
   public currentPiece: Piece;
   public upcomingPieces: Piece[] = [];
   public over: boolean = false;
+  public lineRequests: LineRequest[] = [];
   public message: string;
 
   private position: Position;
@@ -150,7 +156,7 @@ export class TetrisEngine implements BoardState {
   constructor() {
     const grid = [];
     for (let i = 0; i < HEIGHT; i++) {
-      grid.push(this.emptyRow());
+      grid.push(this.row());
     }
     this.grid = grid;
   }
@@ -163,6 +169,7 @@ export class TetrisEngine implements BoardState {
     this.updatedUpcoming();
     const placePiece = !this.currentPiece;
     if (placePiece) {
+      this.processLineRequests();
       this.currentPiece = this.upcomingPieces.shift();
       this.resetPosition();
       this.updatedUpcoming();
@@ -200,6 +207,39 @@ export class TetrisEngine implements BoardState {
     while (this.movePiece(0, 1, 0)) {
     }
     this.tick();
+  }
+
+  public addLinesToBottom(count: number, solid: boolean) {
+    this.lineRequests.push({count, solid});
+  }
+
+  private processLineRequests() {
+    for (let req of this.lineRequests) {
+      if (req.solid) {
+        const row = this.row({color: 'black'});
+        for (let c = 0; c < req.count; c++) {
+          this.grid.shift();
+          this.grid.push(row);
+        }
+      } else {
+        const row = this.row({color: 'gray'});
+        row[Math.floor(Math.random() * row.length)] = null;
+        for (let c = 0; c < req.count; c++) {
+          this.grid.shift();
+        }
+        for (let i = this.grid.length - 1; i >= 0; i--) {
+          if (this.grid[i].indexOf(null) == -1) {
+            continue;
+          }
+
+          for (let c = 0; c < req.count; c++) {
+            this.grid.splice(i + 1, 0, row);
+          }
+          break;
+        }
+      }
+    }
+    this.lineRequests = [];
   }
 
   private clearPattern(pos: Position, m: number[][]) {
@@ -278,10 +318,10 @@ export class TetrisEngine implements BoardState {
 
   private pieceCollides(pos: Position, piece: Piece) {}
 
-  private emptyRow(): Cell[] {
+  private row(cell: Cell = null): Cell[] {
     const row = [];
     for (let j = 0; j < WIDTH; j++) {
-      row.push(null);
+      row.push(cell);
     }
     return row;
   }
@@ -290,14 +330,19 @@ export class TetrisEngine implements BoardState {
     for (let y = 0; y < HEIGHT; y++) {
       let full = false;
       for (let x = 0; x < WIDTH; x++) {
-        full = !!this.grid[y][x];
+        const cell = this.grid[y][x];
+        if (cell && cell.color == 'black') {
+          full = false;
+          break;
+        }
+        full = !!cell;
         if (!full) {
           break;
         }
       }
       if (full) {
         this.grid.splice(y, 1);
-        this.grid.unshift(this.emptyRow());
+        this.grid.unshift(this.row());
       }
     }
   }

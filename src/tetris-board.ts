@@ -10,6 +10,8 @@ const COLOR_MAP = {
   'red': '#dc322f',
   'blue': '#268bd2',
   'orange': '#cb4b16',
+  'black': '#073642',
+  'gray': '#586e75',
 }
 
 @component('tetris-board') class TetrisBoard extends polymer.Base {

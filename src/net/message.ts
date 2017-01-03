@@ -9,6 +9,7 @@ export interface Message {
   stop?: Stop;
   boardStates?: {[id: string]: BoardState};
   players?: {[id: string]: Player};
+  addLines?: AddLines;
 }
 
 /**
@@ -18,6 +19,11 @@ export interface Message {
 export interface Start {}
 
 export interface Stop { message?: string }
+
+export interface AddLines {
+  count: number
+  solid: boolean
+}
 
 /**
  * Hello is sent from client to host upon first connecting.
@@ -45,4 +51,6 @@ export interface Player {
   wins: number
   games: number
   over: boolean
+  linesSent: number
+  timeAlive: number
 }
