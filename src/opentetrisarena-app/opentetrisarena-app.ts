@@ -29,6 +29,8 @@ class OpenTetrisArena extends polymer.Base {
   private players: {[id: string]: Player} = {};
   private remotePlayers: {[id: string]: Player} = {};
   private message: string;
+  private startTime;
+  private playerID: string;
 
   private lastInterval;
   private lastUnbreakableInterval;
@@ -38,6 +40,15 @@ class OpenTetrisArena extends polymer.Base {
     this.message = null;
 
     this.state = new TetrisEngine();
+    this.state.onLineBreak = (count: number) => {
+      count--;
+      if (count > 0) {
+        const to = this.randomOtherPlayer();
+        if (to) {
+          this.conn.send({sendLines: {to, count}}, true);
+        }
+      }
+    };
 
     this.lastInterval = setInterval(() => {
       this.state.tick();
@@ -54,6 +65,16 @@ class OpenTetrisArena extends polymer.Base {
     }, BOARD_UNBREAKABLE_INTERVAL);
   }
 
+  randomOtherPlayer(): string {
+    const players = [];
+    for (let id in this.players) {
+      if (id != this.playerID) {
+        players.push(id);
+      }
+    }
+    return players[Math.floor(Math.random() * players.length)];
+  }
+
   stop() {
     if (this.lastInterval) {
       clearInterval(this.lastInterval);
@@ -66,8 +87,10 @@ class OpenTetrisArena extends polymer.Base {
   }
 
   sendStart() {
+    this.startTime = +new Date;
     for (let id in this.remotePlayers) {
       const player = this.remotePlayers[id];
+      player.timeAlive = 0;
       player.games++;
       player.over = false;
     }
@@ -160,7 +183,6 @@ class OpenTetrisArena extends polymer.Base {
     this.conn = conn;
     this.ingame = true;
     this.welcome = false;
-    let playerID = null;
     conn.onMessage = (msg: Message, reliable: boolean, bytes: number) => {
       console.log('client <-', msg, reliable, bytes);
 
@@ -176,12 +198,12 @@ class OpenTetrisArena extends polymer.Base {
       }
 
       if (msg.welcome) {
-        playerID = msg.welcome.playerId;
+        this.playerID = msg.welcome.playerId;
       }
 
       if (msg.boardStates) {
         for (let id in msg.boardStates) {
-          if (id != playerID) {
+          if (id != this.playerID) {
             let idx = this.idToSubState[id];
             const state = msg.boardStates[id];
             state.id = id;
@@ -242,9 +264,29 @@ class OpenTetrisArena extends polymer.Base {
 
       if (msg.boardStates) {
         const state = msg.boardStates['board'];
-        this.remotePlayers[playerID].over = state.over;
+        const remotePlayer = this.remotePlayers[playerID];
+        if (!remotePlayer.over && state.over) {
+          remotePlayer.timeAlive = (+new Date - this.startTime) / 1000;
+          this.broadcastPlayers();
+        }
+        remotePlayer.over = state.over;
         this.boardStates[playerID] = state;
         this.checkForWin();
+      }
+
+      if (msg.sendLines) {
+        const conn = this.remoteConns[msg.sendLines.to];
+        if (!conn) {
+          console.log('invalid target of lines', msg);
+          return;
+        }
+        if (msg.sendLines.count > 3 || msg.sendLines.count < 0) {
+          console.log('invalid number of lines', msg);
+          return;
+        }
+        conn.send({addLines: {count: msg.sendLines.count, solid: false}}, true);
+        const remotePlayer = this.remotePlayers[playerID];
+        remotePlayer.linesSent+=msg.sendLines.count;
       }
     };
 

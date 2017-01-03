@@ -149,6 +149,7 @@ export class TetrisEngine implements BoardState {
   public over: boolean = false;
   public lineRequests: LineRequest[] = [];
   public message: string;
+  public onLineBreak: (count: number) => void;
 
   private position: Position;
   private bag: Piece[] = [];
@@ -327,6 +328,7 @@ export class TetrisEngine implements BoardState {
   }
 
   private checkSolved() {
+    let broken = 0;
     for (let y = 0; y < HEIGHT; y++) {
       let full = false;
       for (let x = 0; x < WIDTH; x++) {
@@ -343,7 +345,11 @@ export class TetrisEngine implements BoardState {
       if (full) {
         this.grid.splice(y, 1);
         this.grid.unshift(this.row());
+        broken++;
       }
+    }
+    if (broken > 0 && this.onLineBreak) {
+      this.onLineBreak(broken);
     }
   }
 

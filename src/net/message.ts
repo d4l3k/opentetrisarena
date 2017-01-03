@@ -10,6 +10,7 @@ export interface Message {
   boardStates?: {[id: string]: BoardState};
   players?: {[id: string]: Player};
   addLines?: AddLines;
+  sendLines?: SendLines;
 }
 
 /**
@@ -19,6 +20,11 @@ export interface Message {
 export interface Start {}
 
 export interface Stop { message?: string }
+
+export interface SendLines {
+  to: string
+  count: number
+}
 
 export interface AddLines {
   count: number

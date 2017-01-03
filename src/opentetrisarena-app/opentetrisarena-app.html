@@ -103,7 +103,9 @@
               <th>Name</th>
               <th>Wins</th>
               <th>Games</th>
+              <th>Lines Sent</th>
               <th>Alive</th>
+              <th>Time Alive</th>
             </thead>
             <tbody>
               <template is="dom-repeat" items="[[toArr(players)]]">
@@ -111,7 +113,9 @@
                   <td>[[item.name]]</td>
                   <td>[[item.wins]]</td>
                   <td>[[item.games]]</td>
+                  <td>[[item.linesSent]]</td>
                   <td>[[!item.over]]</td>
+                  <td>[[item.timeAlive]]s</td>
                 </tr>
               </template>
             </tbody>
