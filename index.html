@@ -9303,7 +9303,9 @@ WebRTCLobbyHost.register();
               <tr><th>Name</th>
               <th>Wins</th>
               <th>Games</th>
+              <th>Lines Sent</th>
               <th>Alive</th>
+              <th>Time Alive</th>
             </tr></thead>
             <tbody>
               <template is="dom-repeat" items="[[toArr(players)]]">
@@ -9311,7 +9313,9 @@ WebRTCLobbyHost.register();
                   <td>[[item.name]]</td>
                   <td>[[item.wins]]</td>
                   <td>[[item.games]]</td>
+                  <td>[[item.linesSent]]</td>
                   <td>[[!item.over]]</td>
+                  <td>[[item.timeAlive]]s</td>
                 </tr>
               </template>
             </tbody>
@@ -9653,6 +9657,15 @@ var OpenTetrisArena = (function (_super) {
         this.stop();
         this.message = null;
         this.state = new tetris_engine_1.TetrisEngine();
+        this.state.onLineBreak = function (count) {
+            count--;
+            if (count > 0) {
+                var to = _this.randomOtherPlayer();
+                if (to) {
+                    _this.conn.send({ sendLines: { to: to, count: count } }, true);
+                }
+            }
+        };
         this.lastInterval = setInterval(function () {
             _this.state.tick();
             _this.notifyState();
@@ -9665,6 +9678,15 @@ var OpenTetrisArena = (function (_super) {
             _this.broadcast({ addLines: { count: 1, solid: true } }, true);
         }, BOARD_UNBREAKABLE_INTERVAL);
     };
+    OpenTetrisArena.prototype.randomOtherPlayer = function () {
+        var players = [];
+        for (var id in this.players) {
+            if (id != this.playerID) {
+                players.push(id);
+            }
+        }
+        return players[Math.floor(Math.random() * players.length)];
+    };
     OpenTetrisArena.prototype.stop = function () {
         if (this.lastInterval) {
             clearInterval(this.lastInterval);
@@ -9676,8 +9698,10 @@ var OpenTetrisArena = (function (_super) {
         }
     };
     OpenTetrisArena.prototype.sendStart = function () {
+        this.startTime = +new Date;
         for (var id in this.remotePlayers) {
             var player = this.remotePlayers[id];
+            player.timeAlive = 0;
             player.games++;
             player.over = false;
         }
@@ -9761,7 +9785,6 @@ var OpenTetrisArena = (function (_super) {
         this.conn = conn;
         this.ingame = true;
         this.welcome = false;
-        var playerID = null;
         conn.onMessage = function (msg, reliable, bytes) {
             console.log('client <-', msg, reliable, bytes);
             if (msg.start) {
@@ -9774,11 +9797,11 @@ var OpenTetrisArena = (function (_super) {
                 }
             }
             if (msg.welcome) {
-                playerID = msg.welcome.playerId;
+                _this.playerID = msg.welcome.playerId;
             }
             if (msg.boardStates) {
                 for (var id in msg.boardStates) {
-                    if (id != playerID) {
+                    if (id != _this.playerID) {
                         var idx = _this.idToSubState[id];
                         var state = msg.boardStates[id];
                         state.id = id;
@@ -9830,9 +9853,28 @@ var OpenTetrisArena = (function (_super) {
             }
             if (msg.boardStates) {
                 var state = msg.boardStates['board'];
-                _this.remotePlayers[playerID].over = state.over;
+                var remotePlayer = _this.remotePlayers[playerID];
+                if (!remotePlayer.over && state.over) {
+                    remotePlayer.timeAlive = (+new Date - _this.startTime) / 1000;
+                    _this.broadcastPlayers();
+                }
+                remotePlayer.over = state.over;
                 _this.boardStates[playerID] = state;
                 _this.checkForWin();
+            }
+            if (msg.sendLines) {
+                var conn_1 = _this.remoteConns[msg.sendLines.to];
+                if (!conn_1) {
+                    console.log('invalid target of lines', msg);
+                    return;
+                }
+                if (msg.sendLines.count > 3 || msg.sendLines.count < 0) {
+                    console.log('invalid number of lines', msg);
+                    return;
+                }
+                conn_1.send({ addLines: { count: msg.sendLines.count, solid: false } }, true);
+                var remotePlayer = _this.remotePlayers[playerID];
+                remotePlayer.linesSent += msg.sendLines.count;
             }
         };
         conn.onClose = function () {
@@ -10258,6 +10300,7 @@ var TetrisEngine = (function () {
         return row;
     };
     TetrisEngine.prototype.checkSolved = function () {
+        var broken = 0;
         for (var y = 0; y < HEIGHT; y++) {
             var full = false;
             for (var x = 0; x < WIDTH; x++) {
@@ -10274,7 +10317,11 @@ var TetrisEngine = (function () {
             if (full) {
                 this.grid.splice(y, 1);
                 this.grid.unshift(this.row());
+                broken++;
             }
+        }
+        if (broken > 0 && this.onLineBreak) {
+            this.onLineBreak(broken);
         }
     };
     TetrisEngine.prototype.resetPosition = function () {
