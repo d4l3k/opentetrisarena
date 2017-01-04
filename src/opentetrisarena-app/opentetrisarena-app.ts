@@ -15,7 +15,9 @@ const PLAYER_TARGET_TICKS = 80;
 
 @component('opentetrisarena-app')
 class OpenTetrisArena extends polymer.Base {
-  private state: TetrisEngine = new TetrisEngine();
+  @property({type: String}) private serverToken: string;
+  @property({type: Object}) private state: TetrisEngine;
+
   private subStates: BoardState[] = [];
   private idToSubState: {[id: string]: number} = {};
   private ingame: boolean = false;
@@ -332,9 +334,12 @@ class OpenTetrisArena extends polymer.Base {
   }
 
   notifyState() {
-    var state = this.state;
+    /*
+    const state = this.state;
     this.state = null;
     this.state = state;
+    */
+    this.walkAndNotify(this.state.grid, 'state.grid');
   }
 
   checkForWin() {
@@ -410,6 +415,17 @@ class OpenTetrisArena extends polymer.Base {
 
     e.preventDefault();
     this.notifyState();
+  }
+
+  walkAndNotify(n: any, path: string) {
+    for (let prop in n) {
+      if (prop === 'prototype' || prop === 'proto') {
+        continue;
+      }
+      const localPath = path + '.' + prop;
+      this.walkAndNotify(n[prop], localPath);
+      (this as any).notifyPath(localPath);
+    }
   }
 
   toArr<T>(items: {[id: string]: T}): T[] {

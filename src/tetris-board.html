@@ -51,12 +51,11 @@
       */
     </style>
 
-    <div class="border" selected$="[[selected]]" small$="[[small]]" over$="[[state.over]]">
+    <div class="border" selected="[[selected]]" small="[[small]]" over="[[state.over]]">
       <template is="dom-repeat" items="[[state.grid]]">
         <div class="row">
           <template is="dom-repeat" items="[[item]]">
-            <div class="block" style$="{{computeColor(item)}}">
-            </div>
+            <div class="block" style$="{{_computeColor(item)}}"></div>
           </template>
         </div>
       </template>

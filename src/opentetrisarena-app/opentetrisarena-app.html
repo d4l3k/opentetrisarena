@@ -47,7 +47,7 @@
     </template>
 
     <template is="dom-if" if="[[ishost]]">
-      <p>Have users connect to ID: [[serverToken]]</p>
+      <p>Have users connect to ID: <span>[[serverToken]]</span></p>
       <webrtc-lobby-host id="lobby"
                          url="wss://fn.lc/lobby"
                          service="tetris"
@@ -68,9 +68,7 @@
     <template is="dom-if" if="[[ingame]]">
       <div flex>
         <div class="board">
-          <tetris-board state="[[state]]"
-                        sub-states="[[subStates]]">
-          </tetris-board>
+          <tetris-board state="[[state]]"></tetris-board>
         </div>
 
         <div class="info">

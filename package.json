@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "deps": "npm install && bower install",
-    "build": "browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --inline-scripts --inline-css --out-html index.html app.html",
+    "build": "mkdir -p out && browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --inline-scripts --exclude bower_components/webcomponentsjs/ --inline-css app.html | crisper --html out/index.html --js out/index.js && mv out/index.js out/index.tmp.js && babel out/index.tmp.js | uglifyjs -c -m -r 'customElements,Polymer' -o out/index.js && rm out/index.tmp.js && cp -r bower_components/ out/",
     "watch": "watchify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --debug --verbose",
     "test": "tsc && mocha $(find . -name '*_test.js' ! -path './node_modules/*' ! -path './bower_components/*'| tr -s '\n' ' ')"
   },
@@ -15,12 +15,16 @@
     "@types/chai": "^3.4.34",
     "@types/mocha": "^2.2.33",
     "@types/webrtc": "0.0.21",
+    "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
     "bower": "^1.8.0",
     "browserify": "^13.1.1",
     "chai": "^3.5.0",
+    "crisper": "^2.0.2",
     "mocha": "^3.1.2",
     "tsify": "^3.0.0",
     "typescript": "^2.1.4",
+    "uglify-js": "^2.7.5",
     "vulcanize": "^1.15.2",
     "watchify": "^3.8.0"
   }

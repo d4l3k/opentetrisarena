@@ -154,7 +154,10 @@ export class TetrisEngine implements BoardState {
   private position: Position;
   private bag: Piece[] = [];
 
-  constructor() {
+  constructor(noop: boolean = false) {
+    if (noop) {
+      return;
+    }
     const grid = [];
     for (let i = 0; i < HEIGHT; i++) {
       grid.push(this.row());
@@ -244,7 +247,7 @@ export class TetrisEngine implements BoardState {
   }
 
   private clearPattern(pos: Position, m: number[][]) {
-    this.applyPattern(pos, m, null);
+    this.applyPattern(pos, m, {});
   }
 
   private applyPattern(pos: Position, m: number[][], val: Cell) {
@@ -283,7 +286,7 @@ export class TetrisEngine implements BoardState {
         if (!this.inRenderBounds({x, y})) {
           continue;
         }
-        if (this.grid[y][x]) {
+        if (this.grid[y][x].color) {
           return false;
         }
       }
@@ -319,7 +322,7 @@ export class TetrisEngine implements BoardState {
 
   private pieceCollides(pos: Position, piece: Piece) {}
 
-  private row(cell: Cell = null): Cell[] {
+  private row(cell: Cell = {}): Cell[] {
     const row = [];
     for (let j = 0; j < WIDTH; j++) {
       row.push(cell);
