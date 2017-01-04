@@ -9214,6 +9214,12 @@ WebRTCLobbyHost.register();
       .alert {
         color: #dc322f;
       }
+      label {
+        display: block;
+        font-weight: bold;
+        margin-top: 1em;
+        margin-bottom: 0.3em;
+      }
     </style>
     <h1>Open Tetris Arena</h1>
 
@@ -9221,14 +9227,21 @@ WebRTCLobbyHost.register();
       <label>Name</label>
       <input value="{{name::input}}" type="text">
 
-      <p>
-        <button on-tap="host">Host</button>
-      </p>
+      <label>Host Game</label>
+      <button on-tap="host">Host</button>
 
-      <p>
-      <input value="{{token::input}}" type="text">
+      <label>Join Game</label>
+      <input placeholder="Enter ID" value="{{token::input}}" type="text">
       <button on-tap="join">Join</button>
-      </p>
+
+      <template is="dom-if" if="[[joinError]]">
+        <p class="alert">Error: [[joinError]]</p>
+      </template>
+    </template>
+
+    <template is="dom-if" if="[[connecting]]">
+      <p>Connecting to [[token]]...</p>
+      <paper-progress indeterminate=""></paper-progress>
     </template>
 
     <template is="dom-if" if="[[ishost]]">
@@ -9636,6 +9649,7 @@ var OpenTetrisArena = (function (_super) {
         _this.ingame = false;
         _this.welcome = true;
         _this.ishost = false;
+        _this.connecting = false;
         _this.serverHidden = true;
         _this.remoteConns = {};
         _this.boardStates = {};
@@ -9662,9 +9676,13 @@ var OpenTetrisArena = (function (_super) {
         this.lastInterval = setInterval(function () {
             _this.state.tick();
             _this.notifyState();
-            _this.sendState();
             if (_this.state.over) {
                 _this.stop();
+                // Send state via the reliable data channel.
+                _this.sendState(true);
+            }
+            else {
+                _this.sendState();
             }
         }, BOARD_UPDATE_TIME);
         this.lastUnbreakableInterval = setInterval(function () {
@@ -9731,7 +9749,10 @@ var OpenTetrisArena = (function (_super) {
         if (message === void 0) { message = null; }
         this.broadcast({ stop: { message: message } }, true);
     };
-    OpenTetrisArena.prototype.sendState = function () { this.conn.send({ boardStates: { 'board': this.state } }, false); };
+    OpenTetrisArena.prototype.sendState = function (reliable) {
+        if (reliable === void 0) { reliable = false; }
+        this.conn.send({ boardStates: { 'board': this.state } }, reliable);
+    };
     OpenTetrisArena.prototype.broadcast = function (msg, reliable) {
         for (var id in this.remoteConns) {
             var conn = this.remoteConns[id];
@@ -9770,6 +9791,9 @@ var OpenTetrisArena = (function (_super) {
         if (!this.hasValidName()) {
             return;
         }
+        this.connecting = true;
+        this.welcome = false;
+        this.joinError = null;
         var con = new webrtc_1.WebRTCConnection(webrtc_config_1.RTC_CONFIG);
         con.onOpen = function () { _this.setConnection(con); };
         con.makeOffer()
@@ -9781,6 +9805,9 @@ var OpenTetrisArena = (function (_super) {
             .catch(function (err) {
             con.onOpen = null;
             console.log(err);
+            _this.connecting = false;
+            _this.welcome = true;
+            _this.joinError = err;
         });
     };
     OpenTetrisArena.prototype.hasValidName = function () {
@@ -9804,6 +9831,7 @@ var OpenTetrisArena = (function (_super) {
         this.conn = conn;
         this.ingame = true;
         this.welcome = false;
+        this.connecting = false;
         conn.onMessage = function (msg, reliable, bytes) {
             console.log('client <-', msg, reliable, bytes);
             if (msg.start) {
