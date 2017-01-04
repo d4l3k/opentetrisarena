@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/iron-localstorage/iron-localstorage.html">
 
 <link rel="import" href="../tetris-board.html">
+<link rel="import" href="../tetris-piece.html">
 <link rel="import" href="../../bower_components/webrtc-lobby-elements/webrtc-lobby-elements.html">
 
 <dom-module id="opentetrisarena-app">
@@ -16,6 +17,12 @@
         font-family: var(--font);
         display: block;
         margin: 16px;
+      }
+      h3 {
+        margin: 10px 0 5px;
+      }
+      .upcoming {
+        margin-bottom: 10px;
       }
       a {
         color: var(--link-color);
@@ -74,13 +81,13 @@
         </div>
 
         <div class="info">
-          <div over$="[[state.over]]">
+          <div over$="[[state.over]]" class="upcoming">
             <h3>Upcoming</h3>
             <template is="dom-repeat" items="[[state.upcomingPieces]]">
-              <span>[[item.name]]</span>
+              <tetris-piece piece="[[item]]"></tetris-piece>
             </template>
             <h3>Saved</h3>
-            <span>[[state.savedPiece.name]]</span>
+            <tetris-piece piece="[[state.savedPiece]]"></tetris-piece>
           </div>
 
           <template is="dom-repeat" items="[[subStates]]">
