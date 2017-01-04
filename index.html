@@ -9733,6 +9733,10 @@ var OpenTetrisArena = (function (_super) {
             clearInterval(this.lastUnbreakableInterval);
             this.lastUnbreakableInterval = null;
         }
+        if (this.lastPlayerTargetInterval) {
+            clearInterval(this.lastPlayerTargetInterval);
+            this.lastPlayerTargetInterval = null;
+        }
     };
     OpenTetrisArena.prototype.sendStart = function () {
         this.startTime = +new Date;
@@ -10194,6 +10198,7 @@ var TetrisEngine = (function () {
         this.over = false;
         this.lineRequests = [];
         this.bag = [];
+        this.hasSwapped = false;
         var grid = [];
         for (var i = 0; i < HEIGHT; i++) {
             grid.push(this.row());
@@ -10207,6 +10212,7 @@ var TetrisEngine = (function () {
         this.updatedUpcoming();
         var placePiece = !this.currentPiece;
         if (placePiece) {
+            this.hasSwapped = false;
             this.processLineRequests();
             this.currentPiece = this.upcomingPieces.shift();
             this.resetPosition();
@@ -10224,6 +10230,10 @@ var TetrisEngine = (function () {
         }
     };
     TetrisEngine.prototype.swap = function () {
+        if (this.hasSwapped) {
+            return;
+        }
+        this.hasSwapped = true;
         this.clearPattern(this.position, this.currentPiece.block);
         var cur = this.currentPiece;
         this.currentPiece = this.savedPiece;
