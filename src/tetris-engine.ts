@@ -153,6 +153,7 @@ export class TetrisEngine implements BoardState {
 
   private position: Position;
   private bag: Piece[] = [];
+  private hasSwapped: boolean = false;
 
   constructor() {
     const grid = [];
@@ -170,6 +171,7 @@ export class TetrisEngine implements BoardState {
     this.updatedUpcoming();
     const placePiece = !this.currentPiece;
     if (placePiece) {
+      this.hasSwapped = false;
       this.processLineRequests();
       this.currentPiece = this.upcomingPieces.shift();
       this.resetPosition();
@@ -188,6 +190,11 @@ export class TetrisEngine implements BoardState {
   }
 
   public swap() {
+    if (this.hasSwapped) {
+      return;
+    }
+    this.hasSwapped = true;
+
     this.clearPattern(this.position, this.currentPiece.block);
     const cur = this.currentPiece;
     this.currentPiece = this.savedPiece;

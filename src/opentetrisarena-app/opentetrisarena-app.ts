@@ -119,9 +119,15 @@ class OpenTetrisArena extends polymer.Base {
       clearInterval(this.lastInterval);
       this.lastInterval = null;
     }
+
     if (this.lastUnbreakableInterval) {
       clearInterval(this.lastUnbreakableInterval);
       this.lastUnbreakableInterval = null;
+    }
+
+    if (this.lastPlayerTargetInterval) {
+      clearInterval(this.lastPlayerTargetInterval);
+      this.lastPlayerTargetInterval = null;
     }
   }
 
