@@ -36,6 +36,12 @@
       .alert {
         color: #dc322f;
       }
+      label {
+        display: block;
+        font-weight: bold;
+        margin-top: 1em;
+        margin-bottom: 0.3em;
+      }
     </style>
     <h1>Open Tetris Arena</h1>
 
@@ -43,14 +49,21 @@
       <label>Name</label>
       <input value="{{name::input}}" type="text">
 
-      <p>
-        <button on-tap="host">Host</button>
-      </p>
+      <label>Host Game</label>
+      <button on-tap="host">Host</button>
 
-      <p>
-      <input value="{{token::input}}" type="text">
+      <label>Join Game</label>
+      <input placeholder="Enter ID" value="{{token::input}}" type="text">
       <button on-tap="join">Join</button>
-      </p>
+
+      <template is="dom-if" if="[[joinError]]">
+        <p class="alert">Error: [[joinError]]</p>
+      </template>
+    </template>
+
+    <template is="dom-if" if="[[connecting]]">
+      <p>Connecting to [[token]]...</p>
+      <paper-progress indeterminate></paper-progress>
     </template>
 
     <template is="dom-if" if="[[ishost]]">

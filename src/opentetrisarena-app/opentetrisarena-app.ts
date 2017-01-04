@@ -21,6 +21,7 @@ class OpenTetrisArena extends polymer.Base {
   private ingame: boolean = false;
   private welcome: boolean = true;
   private ishost: boolean = false;
+  private connecting: boolean = false;
   private name: string;
   private serverHidden: boolean = true;
   private remoteConns: {[id: string]: Connection} = {};
@@ -33,6 +34,7 @@ class OpenTetrisArena extends polymer.Base {
   private message: string;
   private startTime;
   private playerID: string;
+  private joinError: string;
 
   private lastInterval;
   private lastUnbreakableInterval;
@@ -59,10 +61,13 @@ class OpenTetrisArena extends polymer.Base {
     this.lastInterval = setInterval(() => {
       this.state.tick();
       this.notifyState();
-      this.sendState();
 
       if (this.state.over) {
         this.stop();
+        // Send state via the reliable data channel.
+        this.sendState(true);
+      } else {
+        this.sendState();
       }
     }, BOARD_UPDATE_TIME);
 
@@ -134,7 +139,9 @@ class OpenTetrisArena extends polymer.Base {
 
   sendStop(message: string = null) { this.broadcast({stop: {message}}, true); }
 
-  sendState() { this.conn.send({boardStates: {'board': this.state}}, false); }
+  sendState(reliable: boolean = false) {
+    this.conn.send({boardStates: {'board': this.state}}, reliable);
+  }
 
   broadcast(msg: Message, reliable: boolean) {
     for (let id in this.remoteConns) {
@@ -179,6 +186,10 @@ class OpenTetrisArena extends polymer.Base {
       return;
     }
 
+    this.connecting = true;
+    this.welcome = false;
+    this.joinError = null;
+
     const con = new WebRTCConnection(RTC_CONFIG);
 
     con.onOpen = () => { this.setConnection(con); };
@@ -193,6 +204,9 @@ class OpenTetrisArena extends polymer.Base {
         .catch(err => {
           con.onOpen = null;
           console.log(err);
+          this.connecting = false;
+          this.welcome = true;
+          this.joinError = err;
         });
   }
 
@@ -217,6 +231,7 @@ class OpenTetrisArena extends polymer.Base {
     this.conn = conn;
     this.ingame = true;
     this.welcome = false;
+    this.connecting = false;
     conn.onMessage = (msg: Message, reliable: boolean, bytes: number) => {
       console.log('client <-', msg, reliable, bytes);
 
