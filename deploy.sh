@@ -8,8 +8,6 @@ function doCompile {
   npm run deps
   npm run build
   npm run test
-  mkdir -p out
-  cp index.html out/index.html
 }
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify

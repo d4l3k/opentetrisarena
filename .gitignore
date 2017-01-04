@@ -2,3 +2,5 @@ bower_components
 node_modules
 *.js
 *.js.map
+out/
+index.html
