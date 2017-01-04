@@ -25,7 +25,7 @@
     </style>
 
     <div class="border">
-      <template is="dom-repeat" items="[[piece.block]]">
+      <template is="dom-repeat" items="[[piece.block]]" filter="[[hideEmptyRows]]">
         <div class="row">
           <template is="dom-repeat" items="[[item]]">
             <div class="block" style$="{{computeColor(item, piece)}}">

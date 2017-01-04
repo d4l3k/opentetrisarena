@@ -7,11 +7,15 @@ import {COLOR_MAP} from './colors';
 class TetrisPiece extends polymer.Base {
   @property({type: Object}) piece: Piece;
 
-  public computeColor(item, piece) {
+  public computeColor(item, piece): string {
     if (!item || !piece) {
       return '';
     }
     return 'background-color: ' + COLOR_MAP[piece.color];
+  }
+
+  public hideEmptyRows(row: number[]): boolean {
+    return (row.indexOf(1) != -1);
   }
 }
 
