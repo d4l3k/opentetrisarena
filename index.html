@@ -8656,6 +8656,44 @@ is resolved. Local storage will be blown away.
     <div class="progress" style="[[progressWidth(progress, selected)]]"></div>
   </template>
 </dom-module>
+<dom-module id="tetris-piece" assetpath="src/">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .row {
+        display: flex;
+      }
+      .block {
+        display: inline-block;
+        height: 10px;
+        width: 10px;
+      }
+      .border {
+        border: 1px solid var(--color);
+        width: 40px;
+        height: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+
+    <div class="border">
+      <template is="dom-repeat" items="[[piece.block]]">
+        <div class="row">
+          <template is="dom-repeat" items="[[item]]">
+            <div class="block" style$="{{computeColor(item, piece)}}">
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+</dom-module>
 <script>///<reference path="./bower_components/polymer-ts/polymer-ts.d.ts" />
 ///<reference path="./typings/browser/ambient/es6-promise/index.d.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
@@ -9158,6 +9196,12 @@ WebRTCLobbyHost.register();
         display: block;
         margin: 16px;
       }
+      h3 {
+        margin: 10px 0 5px;
+      }
+      .upcoming {
+        margin-bottom: 10px;
+      }
       a {
         color: var(--link-color);
       }
@@ -9206,13 +9250,13 @@ WebRTCLobbyHost.register();
         </div>
 
         <div class="info">
-          <div over$="[[state.over]]">
+          <div over$="[[state.over]]" class="upcoming">
             <h3>Upcoming</h3>
             <template is="dom-repeat" items="[[state.upcomingPieces]]">
-              <span>[[item.name]]</span>
+              <tetris-piece piece="[[item]]"></tetris-piece>
             </template>
             <h3>Saved</h3>
-            <span>[[state.savedPiece.name]]</span>
+            <tetris-piece piece="[[state.savedPiece]]"></tetris-piece>
           </div>
 
           <template is="dom-repeat" items="[[subStates]]">
@@ -9274,6 +9318,20 @@ WebRTCLobbyHost.register();
 
 },{}],2:[function(require,module,exports){
 "use strict";
+exports.COLOR_MAP = {
+    'cyan': '#2aa198',
+    'yellow': '#b58900',
+    'purple': '#d33682',
+    'green': '#859900',
+    'red': '#dc322f',
+    'blue': '#268bd2',
+    'orange': '#cb4b16',
+    'black': '#073642',
+    'gray': '#586e75',
+};
+
+},{}],3:[function(require,module,exports){
+"use strict";
 // Simulates poor network conditions.
 var Conditioner = (function () {
     function Conditioner(conn) {
@@ -9331,9 +9389,9 @@ var Conditioner = (function () {
 }());
 exports.Conditioner = Conditioner;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],4:[function(require,module,exports){
+},{"dup":1}],5:[function(require,module,exports){
 "use strict";
 /** Pass messages between two local connections. */
 var Loopback = (function () {
@@ -9386,9 +9444,9 @@ var LoopbackConnection = (function () {
     return LoopbackConnection;
 }());
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],6:[function(require,module,exports){
+},{"dup":1}],7:[function(require,module,exports){
 ///<reference path="../../node_modules/\@types/webrtc/index.d.ts" />
 "use strict";
 function encodeRSD(rsd) {
@@ -9546,7 +9604,7 @@ var WebRTCConnection = (function () {
 }());
 exports.WebRTCConnection = WebRTCConnection;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 ///<reference path="../../bower_components/polymer-ts/polymer-ts.d.ts" />
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -9926,7 +9984,7 @@ OpenTetrisArena = __decorate([
 ], OpenTetrisArena);
 OpenTetrisArena.register();
 
-},{"../net/loopback":4,"../net/webrtc":6,"../tetris-engine":9,"../webrtc-config":10}],8:[function(require,module,exports){
+},{"../net/loopback":5,"../net/webrtc":7,"../tetris-engine":10,"../webrtc-config":12}],9:[function(require,module,exports){
 ///<reference path="../bower_components/polymer-ts/polymer-ts.d.ts" />
 "use strict";
 var __extends = (this && this.__extends) || function (d, b) {
@@ -9940,17 +9998,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-var COLOR_MAP = {
-    'cyan': '#2aa198',
-    'yellow': '#b58900',
-    'purple': '#d33682',
-    'green': '#859900',
-    'red': '#dc322f',
-    'blue': '#268bd2',
-    'orange': '#cb4b16',
-    'black': '#073642',
-    'gray': '#586e75',
-};
+var colors_1 = require("./colors");
 var TetrisBoard = (function (_super) {
     __extends(TetrisBoard, _super);
     function TetrisBoard() {
@@ -9960,7 +10008,7 @@ var TetrisBoard = (function (_super) {
         if (!item) {
             return '';
         }
-        return 'background-color: ' + COLOR_MAP[item.color];
+        return 'background-color: ' + colors_1.COLOR_MAP[item.color];
     };
     TetrisBoard.prototype.progressWidth = function (progress, selected) {
         if (!selected) {
@@ -9990,7 +10038,7 @@ TetrisBoard = __decorate([
 ], TetrisBoard);
 TetrisBoard.register();
 
-},{}],9:[function(require,module,exports){
+},{"./colors":2}],10:[function(require,module,exports){
 "use strict";
 var WIDTH = 10;
 var HEIGHT = 22;
@@ -10330,7 +10378,43 @@ var TetrisEngine = (function () {
 }());
 exports.TetrisEngine = TetrisEngine;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
+///<reference path="../bower_components/polymer-ts/polymer-ts.d.ts" />
+"use strict";
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var colors_1 = require("./colors");
+var TetrisPiece = (function (_super) {
+    __extends(TetrisPiece, _super);
+    function TetrisPiece() {
+        return _super.apply(this, arguments) || this;
+    }
+    TetrisPiece.prototype.computeColor = function (item, piece) {
+        if (!item || !piece) {
+            return '';
+        }
+        return 'background-color: ' + colors_1.COLOR_MAP[piece.color];
+    };
+    return TetrisPiece;
+}(polymer.Base));
+__decorate([
+    property({ type: Object })
+], TetrisPiece.prototype, "piece", void 0);
+TetrisPiece = __decorate([
+    component('tetris-piece')
+], TetrisPiece);
+TetrisPiece.register();
+
+},{"./colors":2}],12:[function(require,module,exports){
 "use strict";
 exports.RTC_CONFIG = {
     iceServers: [
@@ -10347,7 +10431,7 @@ exports.RTC_CONFIG = {
     ]
 };
 
-},{}]},{},[1,2,3,4,5,6,7,8,9,10]);
+},{}]},{},[1,2,3,4,5,6,7,8,9,10,11,12]);
 </script>
   
 
