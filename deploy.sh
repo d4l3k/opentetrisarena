@@ -43,6 +43,7 @@ git config user.email "$COMMIT_AUTHOR_EMAIL"
 
 git status
 git add index.html
+git add --force bower_components
 
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
 if [ -z `git diff --exit-code --cached` ]; then
