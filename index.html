@@ -8683,7 +8683,7 @@ is resolved. Local storage will be blown away.
     </style>
 
     <div class="border">
-      <template is="dom-repeat" items="[[piece.block]]">
+      <template is="dom-repeat" items="[[piece.block]]" filter="[[hideEmptyRows]]">
         <div class="row">
           <template is="dom-repeat" items="[[item]]">
             <div class="block" style$="{{computeColor(item, piece)}}">
@@ -10403,6 +10403,9 @@ var TetrisPiece = (function (_super) {
             return '';
         }
         return 'background-color: ' + colors_1.COLOR_MAP[piece.color];
+    };
+    TetrisPiece.prototype.hideEmptyRows = function (row) {
+        return (row.indexOf(1) != -1);
     };
     return TetrisPiece;
 }(polymer.Base));
