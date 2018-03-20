@@ -16,8 +16,9 @@
       }
       .block {
         display: inline-block;
-        height: 30px;
-        width: 30px;
+        height: 28px;
+        width: 28px;
+        border: 1px solid rgba(0,0,0,0.1);
       }
       [small] .block {
         height: 5px;
@@ -54,7 +55,7 @@
       <template is="dom-repeat" items="[[state.grid]]">
         <div class="row">
           <template is="dom-repeat" items="[[item]]">
-            <div class="block" style$="{{computeColor(item)}}">
+            <div class="block" style$="[[computeColor(item)]]">
             </div>
           </template>
         </div>

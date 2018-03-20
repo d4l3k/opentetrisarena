@@ -1,5 +1,3 @@
-///<reference path="../../node_modules/\@types/webrtc/index.d.ts" />
-
 import {Connection} from './connection';
 import {Message} from './message';
 

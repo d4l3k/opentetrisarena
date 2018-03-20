@@ -88,7 +88,7 @@
     <template is="dom-if" if="[[ingame]]">
       <div flex>
         <div class="board">
-          <tetris-board state="[[state]]"
+          <tetris-board state="[[dup(state, tick)]]"
                         sub-states="[[subStates]]">
           </tetris-board>
         </div>

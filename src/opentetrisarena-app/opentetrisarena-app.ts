@@ -42,6 +42,7 @@ class OpenTetrisArena extends polymer.Base {
   private targetProgress: number = 0;
   private targetPlayer: string;
   private lastPlayerTargetInterval;
+  private tick: number = 0;
 
   start() {
     this.stop();
@@ -100,7 +101,9 @@ class OpenTetrisArena extends polymer.Base {
     if (candidates.length <= 1) {
       return candidates[0];
     }
-    candidates.filter((id) => { return id != this.targetPlayer; });
+    candidates.filter((id) => {
+      return id != this.targetPlayer;
+    });
     return candidates[Math.floor(candidates.length * Math.random())];
   }
 
@@ -143,7 +146,9 @@ class OpenTetrisArena extends polymer.Base {
     this.broadcast({start: {}}, true);
   }
 
-  sendStop(message: string = null) { this.broadcast({stop: {message}}, true); }
+  sendStop(message: string = null) {
+    this.broadcast({stop: {message}}, true);
+  }
 
   sendState(reliable: boolean = false) {
     this.conn.send({boardStates: {'board': this.state}}, reliable);
@@ -198,7 +203,9 @@ class OpenTetrisArena extends polymer.Base {
 
     const con = new WebRTCConnection(RTC_CONFIG);
 
-    con.onOpen = () => { this.setConnection(con); };
+    con.onOpen = () => {
+      this.setConnection(con);
+    };
 
     con.makeOffer()
         .then(
@@ -227,7 +234,9 @@ class OpenTetrisArena extends polymer.Base {
   onOffer(offer: string): Promise<string> {
     console.log('host-wrapper: got offer');
     const conn = new WebRTCConnection(RTC_CONFIG);
-    conn.onOpen = () => { this.addConnection(conn); };
+    conn.onOpen = () => {
+      this.addConnection(conn);
+    };
     return conn.takeOffer(decodeRSD(offer)).then(answer => {
       return encodeRSD(answer);
     });
@@ -290,9 +299,13 @@ class OpenTetrisArena extends polymer.Base {
     conn.send({hello: {name: this.name}}, true);
   }
 
-  playerName(id: string): string { return this.players[id].name; }
+  playerName(id: string): string {
+    return this.players[id].name;
+  }
 
-  broadcastPlayers() { this.broadcast({players: this.remotePlayers}, true); }
+  broadcastPlayers() {
+    this.broadcast({players: this.remotePlayers}, true);
+  }
 
   addConnection(conn: Connection) {
     const playerID = this.nextPlayerID + '';
@@ -356,6 +369,11 @@ class OpenTetrisArena extends polymer.Base {
     var state = this.state;
     this.state = null;
     this.state = state;
+    this.tick = +new Date;
+  }
+
+  dup (a) {
+    return JSON.parse(JSON.stringify(a));
   }
 
   checkForWin() {

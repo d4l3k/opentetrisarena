@@ -7,14 +7,14 @@
   "license": "MIT",
   "scripts": {
     "deps": "npm install && bower install",
-    "build": "mkdir -p out && browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --exclude bower_components/webcomponentsjs/ --inline-scripts --inline-css --out-html out/index.html app.html && mkdir -p out/bower_components && cp -r bower_components/webcomponentsjs out/bower_components/ && cp -r bower_components/custom-elements out/bower_components/ && cp -r bower_components/shadydom out/bower_components/ && cp -r bower_components/shadycss out/bower_components/",
+    "build": "mkdir -p out && browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --exclude bower_components/webcomponentsjs/ --inline-scripts --inline-css --out-html out/index.html app.html && mkdir -p out/bower_components && cp -r bower_components/webcomponentsjs out/bower_components/ && cp -r bower_components/shadycss out/bower_components/",
     "watch": "watchify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --debug --verbose",
     "test": "tsc && mocha $(find . -name '*_test.js' ! -path './node_modules/*' ! -path './bower_components/*'| tr -s '\n' ' ')"
   },
   "dependencies": {
     "@types/chai": "^3.4.34",
     "@types/mocha": "^2.2.33",
-    "@types/webrtc": "0.0.21",
+    "@types/webrtc": "^0.0.23",
     "bower": "^1.8.0",
     "browserify": "^13.1.1",
     "chai": "^3.5.0",

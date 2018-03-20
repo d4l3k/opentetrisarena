@@ -3,7 +3,8 @@
 import {BoardState} from './boardstate';
 import {COLOR_MAP} from './colors';
 
-@component('tetris-board') class TetrisBoard extends polymer.Base {
+@component('tetris-board')
+class TetrisBoard extends polymer.Base {
   @property({type: Object}) state: BoardState;
   @property({type: Array}) subStates: BoardState[];
   @property({type: Boolean, value: false}) small: boolean;
@@ -21,7 +22,8 @@ import {COLOR_MAP} from './colors';
     if (!selected) {
       return '';
     }
-    return 'width: ' + (56 * progress) + 'px'; }
+    return 'width: ' + (56 * progress) + 'px';
+  }
 }
 
 TetrisBoard.register();

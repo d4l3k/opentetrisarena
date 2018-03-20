@@ -2,11 +2,12 @@
   "name": "opentetrisarena",
   "main": "index.html",
   "dependencies": {
-    "polymer": "2.0-preview",
-    "polymer-ts": "^0.1.28",
+    "polymer": "^2.0.0",
+    "polymer-ts": "^0.2.3",
     "webrtc-lobby-elements": "^1.0.3",
     "paper-input": "^1.1.22",
-    "iron-localstorage": "^1.0.6"
+    "iron-localstorage": "^1.0.6",
+    "custom-elements": "^1.0.3"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
@@ -15,7 +16,9 @@
     "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
   },
   "resolutions": {
-    "polymer": "2.0-preview",
-    "webcomponentsjs": "v1"
+    "polymer": "^2.0.0",
+    "webcomponentsjs": "^v1.0.19",
+    "shadycss": "^v1.1.0",
+    "polymer-ts": "^0.2.3"
   }
 }
