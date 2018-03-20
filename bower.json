@@ -6,8 +6,7 @@
     "polymer-ts": "^0.2.3",
     "webrtc-lobby-elements": "^1.0.3",
     "paper-input": "^1.1.22",
-    "iron-localstorage": "^1.0.6",
-    "custom-elements": "^1.0.3"
+    "iron-localstorage": "^1.0.6"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
