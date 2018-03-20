@@ -8,4 +8,5 @@ export const COLOR_MAP = {
   'orange': '#cb4b16',
   'black': '#073642',
   'gray': '#586e75',
+  'ghost': 'rgba(255,255,255,0.1)',
 };

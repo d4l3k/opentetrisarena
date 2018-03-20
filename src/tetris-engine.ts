@@ -203,13 +203,21 @@ export class TetrisEngine implements BoardState {
     this.tick();
   }
 
-  public left() { this.movePiece(-1, 0, 0); }
+  public left() {
+    this.movePiece(-1, 0, 0);
+  }
 
-  public right() { this.movePiece(1, 0, 0); }
+  public right() {
+    this.movePiece(1, 0, 0);
+  }
 
-  public down() { this.movePiece(0, 1, 0); }
+  public down() {
+    this.movePiece(0, 1, 0);
+  }
 
-  public rotate() { this.movePiece(0, 0, 1); }
+  public rotate() {
+    this.movePiece(0, 0, 1);
+  }
 
   public place() {
     while (this.movePiece(0, 1, 0)) {
@@ -290,13 +298,38 @@ export class TetrisEngine implements BoardState {
         if (!this.inRenderBounds({x, y})) {
           continue;
         }
-        if (this.grid[y][x]) {
+        const cell = this.grid[y][x];
+        if (cell && cell.color !== 'ghost') {
           return false;
         }
       }
     }
 
     return true
+  }
+
+  private applyGhost(pos: Position, m: number[][]) {
+    pos = {...pos};
+    while (pos.y <= HEIGHT) {
+      pos.y += 1
+      const fits = this.patternFits(pos, m);
+      if (!fits) {
+        pos.y -= 1
+        break;
+      }
+    }
+    this.applyPattern(pos, m, {color: 'ghost'});
+  }
+
+  private clearGhost() {
+    for (let j = 0; j < HEIGHT; j++) {
+      for (let i = 0; i < WIDTH; i++) {
+        const cell = this.grid[j][i];
+        if (cell && cell.color === 'ghost') {
+          this.grid[j][i] = null
+        }
+      }
+    }
   }
 
   // inBounds returns if the position is a valid place for a block;
@@ -320,6 +353,8 @@ export class TetrisEngine implements BoardState {
     if (fits) {
       this.position = newPos;
     }
+    this.clearGhost();
+    this.applyGhost(this.position, this.currentPiece.block);
     this.applyPattern(this.position, this.currentPiece.block, cell);
     return fits;
   }
