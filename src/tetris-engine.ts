@@ -224,7 +224,9 @@ export class TetrisEngine implements BoardState {
   }
 
   public rotate() {
-    this.movePiece(0, 0, 1);
+    if (!this.movePiece(0, 0, 1)) {
+      this.movePiece(0, 0, 2);
+    }
   }
 
   public place() {
@@ -413,7 +415,7 @@ export class TetrisEngine implements BoardState {
     }
 
     const offset = Math.ceil(matrixWidth(this.currentPiece.block) / 2);
-    this.position = {x: WIDTH / 2 - offset, y: -1, rotation: 0};
+    this.position = {x: WIDTH / 2 - offset, y: -2, rotation: 0};
   }
 
   private updatedUpcoming() {
