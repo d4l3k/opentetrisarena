@@ -35,6 +35,7 @@ class OpenTetrisArena extends polymer.Base {
   private startTime;
   private playerID: string;
   private joinError: string;
+  private serverToken: string;
 
   private lastInterval;
   private lastUnbreakableInterval;
@@ -140,6 +141,10 @@ class OpenTetrisArena extends polymer.Base {
       clearInterval(this.lastPlayerTargetInterval);
       this.lastPlayerTargetInterval = null;
     }
+
+    if (this.state) {
+      this.state.stop();
+    }
   }
 
   sendStart() {
@@ -201,6 +206,9 @@ class OpenTetrisArena extends polymer.Base {
   }
 
   join() {
+    if (!this.token && this.serverToken) {
+      this.token = this.serverToken;
+    }
     if (!this.hasValidName()) {
       return;
     }

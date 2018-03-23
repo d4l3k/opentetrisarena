@@ -179,8 +179,7 @@ export class TetrisEngine implements BoardState {
     }
     if (!this.movePiece(0, 1, 0)) {
       if (placePiece) {
-        this.over = true;
-        this.message = 'Game Over';
+        this.stop();
         return;
       }
       this.currentPiece = null;
@@ -189,7 +188,16 @@ export class TetrisEngine implements BoardState {
     }
   }
 
+  public stop() {
+    this.over = true;
+    this.message = 'Game Over';
+  }
+
   public swap() {
+    if (this.over) {
+      return;
+    }
+
     if (this.hasSwapped) {
       return;
     }
@@ -343,6 +351,10 @@ export class TetrisEngine implements BoardState {
   }
 
   private movePiece(dx: number, dy: number, drot: number): boolean {
+    if (this.over) {
+      return false;
+    }
+
     const {x, y, rotation} = this.position;
     const newPos = {x: x + dx, y: y + dy, rotation: (rotation + drot) % 4};
     this.clearPattern(this.position, this.currentPiece.block);
