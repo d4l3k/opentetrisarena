@@ -15657,6 +15657,39 @@ var __assign = (this && this.__assign) || Object.assign || function(t) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// J, L, S, T, Z Tetromino Wall Kick Data
+var wallKickJLSTZ = [
+    // 0>>1
+    [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+    // 1>>2
+    [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+    // 2>>3
+    [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+    // 3>>0
+    [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]]
+];
+// I Tetromino Wall Kick Data
+var wallKickI = [
+    // 0>>1
+    [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
+    // 1>>2
+    [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
+    // 2>>3
+    [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],
+    // 3>>0
+    [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]
+];
+// O Tetromino Wall Kick Data
+var wallKickO = [
+    // 0>>1
+    [[0, 0]],
+    // 1>>2
+    [[0, 0]],
+    // 2>>3
+    [[0, 0]],
+    // 3>>0
+    [[0, 0]]
+];
 var WIDTH = 10;
 var HEIGHT = 22;
 var PIECES = [
@@ -15669,6 +15702,7 @@ var PIECES = [
             [0, 0, 0, 0],
             [0, 0, 0, 0],
         ],
+        wallKick: wallKickI,
     },
     {
         name: 'O',
@@ -15677,6 +15711,7 @@ var PIECES = [
             [1, 1],
             [1, 1],
         ],
+        wallKick: wallKickO,
     },
     {
         name: 'T',
@@ -15686,6 +15721,7 @@ var PIECES = [
             [1, 1, 1],
             [0, 0, 0],
         ],
+        wallKick: wallKickJLSTZ,
     },
     {
         name: 'S',
@@ -15695,6 +15731,7 @@ var PIECES = [
             [1, 1, 0],
             [0, 0, 0],
         ],
+        wallKick: wallKickJLSTZ,
     },
     {
         name: 'Z',
@@ -15704,6 +15741,7 @@ var PIECES = [
             [0, 1, 1],
             [0, 0, 0],
         ],
+        wallKick: wallKickJLSTZ,
     },
     {
         name: 'J',
@@ -15713,6 +15751,7 @@ var PIECES = [
             [1, 1, 1],
             [0, 0, 0],
         ],
+        wallKick: wallKickJLSTZ,
     },
     {
         name: 'L',
@@ -15722,6 +15761,7 @@ var PIECES = [
             [1, 1, 1],
             [0, 0, 0],
         ],
+        wallKick: wallKickJLSTZ,
     },
 ];
 // matrixRotation returns a new matrix with the desired rotation applied.
@@ -15842,7 +15882,13 @@ var TetrisEngine = /** @class */ (function () {
         this.movePiece(0, 1, 0);
     };
     TetrisEngine.prototype.rotate = function () {
-        this.movePiece(0, 0, 1);
+        var kicks = this.currentPiece.wallKick[this.position.rotation];
+        for (var _i = 0, kicks_1 = kicks; _i < kicks_1.length; _i++) {
+            var _a = kicks_1[_i], x = _a[0], y = _a[1];
+            if (this.movePiece(x, y, 1)) {
+                break;
+            }
+        }
     };
     TetrisEngine.prototype.place = function () {
         while (this.movePiece(0, 1, 0)) {
@@ -16015,7 +16061,7 @@ var TetrisEngine = /** @class */ (function () {
             return;
         }
         var offset = Math.ceil(matrixWidth(this.currentPiece.block) / 2);
-        this.position = { x: WIDTH / 2 - offset, y: -1, rotation: 0 };
+        this.position = { x: WIDTH / 2 - offset, y: -2, rotation: 0 };
     };
     TetrisEngine.prototype.updatedUpcoming = function () {
         while (this.upcomingPieces.length < 5) {
