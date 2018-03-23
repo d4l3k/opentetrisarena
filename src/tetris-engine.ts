@@ -6,6 +6,42 @@ interface Position {
   rotation?: number
 }
 
+// J, L, S, T, Z Tetromino Wall Kick Data
+const wallKickJLSTZ = [
+  // 0>>1
+  [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+  // 1>>2
+  [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+  // 2>>3
+  [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+  // 3>>0
+  [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]]
+];
+
+// I Tetromino Wall Kick Data
+const wallKickI = [
+  // 0>>1
+  [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
+  // 1>>2
+  [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
+  // 2>>3
+  [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],
+  // 3>>0
+  [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]]
+];
+
+// O Tetromino Wall Kick Data
+const wallKickO = [
+  // 0>>1
+  [[0, 0]],
+  // 1>>2
+  [[0, 0]],
+  // 2>>3
+  [[0, 0]],
+  // 3>>0
+  [[0, 0]]
+];
+
 const WIDTH = 10;
 const HEIGHT = 22;
 const PIECES: Piece[] = [
@@ -18,6 +54,7 @@ const PIECES: Piece[] = [
       [0, 0, 0, 0],
       [0, 0, 0, 0],
     ],
+    wallKick: wallKickI,
   },
   {
     name: 'O',
@@ -26,6 +63,7 @@ const PIECES: Piece[] = [
       [1, 1],
       [1, 1],
     ],
+    wallKick: wallKickO,
   },
   {
     name: 'T',
@@ -35,6 +73,7 @@ const PIECES: Piece[] = [
       [1, 1, 1],
       [0, 0, 0],
     ],
+    wallKick: wallKickJLSTZ,
   },
   {
     name: 'S',
@@ -44,6 +83,7 @@ const PIECES: Piece[] = [
       [1, 1, 0],
       [0, 0, 0],
     ],
+    wallKick: wallKickJLSTZ,
   },
   {
     name: 'Z',
@@ -53,6 +93,7 @@ const PIECES: Piece[] = [
       [0, 1, 1],
       [0, 0, 0],
     ],
+    wallKick: wallKickJLSTZ,
   },
   {
     name: 'J',
@@ -62,6 +103,7 @@ const PIECES: Piece[] = [
       [1, 1, 1],
       [0, 0, 0],
     ],
+    wallKick: wallKickJLSTZ,
   },
   {
     name: 'L',
@@ -71,6 +113,7 @@ const PIECES: Piece[] = [
       [1, 1, 1],
       [0, 0, 0],
     ],
+    wallKick: wallKickJLSTZ,
   },
 ];
 
@@ -224,8 +267,11 @@ export class TetrisEngine implements BoardState {
   }
 
   public rotate() {
-    if (!this.movePiece(0, 0, 1)) {
-      this.movePiece(0, 0, 2);
+    const kicks = this.currentPiece.wallKick[this.position.rotation];
+    for (const [x, y] of kicks) {
+      if (this.movePiece(x, y, 1)) {
+        break;
+      }
     }
   }
 

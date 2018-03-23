@@ -1,8 +1,11 @@
-export interface Cell { color: string }
+export interface Cell {
+  color: string
+}
 export interface Piece {
   name: string
   color: string
   block: number[][]
+  wallKick: number[][][]
 }
 
 export interface BoardState {
