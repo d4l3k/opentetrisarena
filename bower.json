@@ -6,7 +6,8 @@
     "polymer-ts": "^0.2.3",
     "webrtc-lobby-elements": "^1.0.3",
     "paper-input": "^1.1.22",
-    "iron-localstorage": "^1.0.6"
+    "iron-localstorage": "^1.0.6",
+    "webcomponentsjs": "^1.1.1"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
@@ -16,7 +17,7 @@
   },
   "resolutions": {
     "polymer": "^2.0.0",
-    "webcomponentsjs": "^v1.0.19",
+    "webcomponentsjs": "^1.1.1",
     "shadycss": "^v1.1.0",
     "polymer-ts": "^0.2.3"
   }
