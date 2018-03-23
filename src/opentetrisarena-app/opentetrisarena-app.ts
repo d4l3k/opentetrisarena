@@ -90,10 +90,18 @@ class OpenTetrisArena extends polymer.Base {
     return targetPlayer === id;
   }
 
+  getBoard(id: string): BoardState {
+    return this.subStates[this.idToSubState[id]];
+  }
+
   randomTargetCandidate(): string {
     let candidates = [];
     for (let id in this.players) {
       if (id === this.playerID || this.players[id].over) {
+        continue;
+      }
+      const board = this.getBoard(id);
+      if (board && board.over) {
         continue;
       }
       candidates.push(id);
@@ -372,7 +380,7 @@ class OpenTetrisArena extends polymer.Base {
     this.tick = +new Date;
   }
 
-  dup (a) {
+  dup(a) {
     return JSON.parse(JSON.stringify(a));
   }
 
