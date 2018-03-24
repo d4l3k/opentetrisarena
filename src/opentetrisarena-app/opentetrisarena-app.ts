@@ -12,6 +12,8 @@ const BOARD_UPDATE_TIME = 1000;
 const BOARD_UNBREAKABLE_INTERVAL = 12000;
 const PLAYER_TARGET_TIME = 4000;
 const PLAYER_TARGET_TICKS = 80;
+const INPUT_TICKS = 70;
+const INPUT_DELAY = 2;
 
 @component('opentetrisarena-app')
 class OpenTetrisArena extends polymer.Base {
@@ -36,6 +38,7 @@ class OpenTetrisArena extends polymer.Base {
   private playerID: string;
   private joinError: string;
   private serverToken: string;
+  private keys: {[key: string]: any} = {};
 
   private lastInterval;
   private lastUnbreakableInterval;
@@ -422,10 +425,7 @@ class OpenTetrisArena extends polymer.Base {
 
   attached() {
     document.addEventListener('keydown', this.handleKeyDown.bind(this));
-  }
-
-  detached() {
-    document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+    document.addEventListener('keyup', this.handleKeyUp.bind(this));
   }
 
   handleKeyDown(e) {
@@ -433,23 +433,9 @@ class OpenTetrisArena extends polymer.Base {
       return;
     }
 
+    e.preventDefault();
+
     switch (e.key) {
-      case 'ArrowLeft':
-        this.state.left();
-        break;
-
-      case 'ArrowRight':
-        this.state.right();
-        break;
-
-      case 'ArrowUp':
-        this.state.rotate();
-        break;
-
-      case 'ArrowDown':
-        this.state.down();
-        break;
-
       case 'Shift':
         this.state.swap();
         break;
@@ -458,13 +444,57 @@ class OpenTetrisArena extends polymer.Base {
         this.state.place();
         break;
 
+      case 'ArrowUp':
+        this.state.rotate();
+        break;
+
       default:
-        console.log('keydown', e);
+        if (!this.keys[e.key]) {
+          let tick = 0;
+          this.keys[e.key] = setInterval(() => {
+            tick += 1;
+            if (tick >= INPUT_DELAY) {
+              this.keyTick(e.key);
+              this.notifyState();
+            }
+          }, INPUT_TICKS);
+
+          this.keyTick(e.key);
+          this.notifyState();
+        }
         return;
     }
-
-    e.preventDefault();
     this.notifyState();
+  }
+
+  handleKeyUp(e) {
+    if (this.keys[e.key]) {
+      clearInterval(this.keys[e.key]);
+      delete this.keys[e.key];
+    }
+    if (!this.ingame) {
+      return;
+    }
+    e.preventDefault()
+  }
+
+  keyTick(key) {
+    switch (key) {
+      case 'ArrowLeft':
+        this.state.left();
+        break;
+
+      case 'ArrowRight':
+        this.state.right();
+        break;
+
+      case 'ArrowDown':
+        this.state.down();
+        break;
+
+      default:
+        return;
+    }
   }
 
   toArr<T>(items: {[id: string]: T}): T[] {
