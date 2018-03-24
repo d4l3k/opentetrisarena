@@ -15181,6 +15181,8 @@ var BOARD_UPDATE_TIME = 1000;
 var BOARD_UNBREAKABLE_INTERVAL = 12000;
 var PLAYER_TARGET_TIME = 4000;
 var PLAYER_TARGET_TICKS = 80;
+var INPUT_TICKS = 70;
+var INPUT_DELAY = 2;
 var OpenTetrisArena = /** @class */ (function (_super) {
     __extends(OpenTetrisArena, _super);
     function OpenTetrisArena() {
@@ -15198,6 +15200,7 @@ var OpenTetrisArena = /** @class */ (function (_super) {
         _this.nextPlayerID = 1;
         _this.players = {};
         _this.remotePlayers = {};
+        _this.keys = {};
         _this.targetProgress = 0;
         _this.tick = 0;
         return _this;
@@ -15538,39 +15541,65 @@ var OpenTetrisArena = /** @class */ (function (_super) {
     };
     OpenTetrisArena.prototype.attached = function () {
         document.addEventListener('keydown', this.handleKeyDown.bind(this));
-    };
-    OpenTetrisArena.prototype.detached = function () {
-        document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+        document.addEventListener('keyup', this.handleKeyUp.bind(this));
     };
     OpenTetrisArena.prototype.handleKeyDown = function (e) {
+        var _this = this;
         if (!this.ingame) {
             return;
         }
+        e.preventDefault();
         switch (e.key) {
-            case 'ArrowLeft':
-                this.state.left();
-                break;
-            case 'ArrowRight':
-                this.state.right();
-                break;
-            case 'ArrowUp':
-                this.state.rotate();
-                break;
-            case 'ArrowDown':
-                this.state.down();
-                break;
             case 'Shift':
                 this.state.swap();
                 break;
             case ' ':
                 this.state.place();
                 break;
+            case 'ArrowUp':
+                this.state.rotate();
+                break;
             default:
-                console.log('keydown', e);
+                if (!this.keys[e.key]) {
+                    var tick_1 = 0;
+                    this.keys[e.key] = setInterval(function () {
+                        tick_1 += 1;
+                        if (tick_1 >= INPUT_DELAY) {
+                            _this.keyTick(e.key);
+                            _this.notifyState();
+                        }
+                    }, INPUT_TICKS);
+                    this.keyTick(e.key);
+                    this.notifyState();
+                }
                 return;
         }
-        e.preventDefault();
         this.notifyState();
+    };
+    OpenTetrisArena.prototype.handleKeyUp = function (e) {
+        if (this.keys[e.key]) {
+            clearInterval(this.keys[e.key]);
+            delete this.keys[e.key];
+        }
+        if (!this.ingame) {
+            return;
+        }
+        e.preventDefault();
+    };
+    OpenTetrisArena.prototype.keyTick = function (key) {
+        switch (key) {
+            case 'ArrowLeft':
+                this.state.left();
+                break;
+            case 'ArrowRight':
+                this.state.right();
+                break;
+            case 'ArrowDown':
+                this.state.down();
+                break;
+            default:
+                return;
+        }
     };
     OpenTetrisArena.prototype.toArr = function (items) {
         var arr = [];
