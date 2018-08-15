@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "deps": "npm install && bower install",
-    "build": "mkdir -p out && browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --exclude bower_components/webcomponentsjs/ --inline-scripts --inline-css --out-html out/index.html app.html && mkdir -p out/bower_components && cp -r bower_components/webcomponentsjs out/bower_components/ && cp -r bower_components/shadycss out/bower_components/",
+    "build": "mkdir -p docs && browserify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --verbose && vulcanize --exclude bower_components/webcomponentsjs/ --inline-scripts --inline-css --out-html docs/index.html app.html && mkdir -p docs/bower_components && cp -r bower_components/webcomponentsjs docs/bower_components/ && cp -r bower_components/shadycss docs/bower_components/",
     "watch": "watchify $(find src/ -name '*.ts' ! -name '*_test.ts' | tr -s '\n' ' ') -p tsify --outfile out.js --debug --verbose",
     "test": "tsc && mocha $(find . -name '*_test.js' ! -path './node_modules/*' ! -path './bower_components/*'| tr -s '\n' ' ')"
   },

@@ -1,7 +1,6 @@
-bower_components
-node_modules
+/bower_components/
+node_modules/
 *.js
 *.js.map
 out/
-index.html
 *.log
