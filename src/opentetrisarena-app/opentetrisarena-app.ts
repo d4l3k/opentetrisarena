@@ -34,18 +34,18 @@ class OpenTetrisArena extends polymer.Base {
   private players: {[id: string]: Player} = {};
   private remotePlayers: {[id: string]: Player} = {};
   private message: string;
-  private startTime;
+  private startTime: number;
   private playerID: string;
   private joinError: string;
   private serverToken: string;
   private keys: {[key: string]: any} = {};
 
-  private lastInterval;
-  private lastUnbreakableInterval;
+  private lastInterval: NodeJS.Timer;
+  private lastUnbreakableInterval: NodeJS.Timer;
 
   private targetProgress: number = 0;
   private targetPlayer: string;
-  private lastPlayerTargetInterval;
+  private lastPlayerTargetInterval: NodeJS.Timer;
   private tick: number = 0;
 
   start() {
@@ -192,7 +192,7 @@ class OpenTetrisArena extends polymer.Base {
     // Wait for dom-if to propagate.
     setTimeout(() => {
       (this.shadowRoot.querySelector('#lobby') as any).offer =
-          (offer: {Offer: string}, resolve: (any) => void) => {
+          (offer: {Offer: string}, resolve: (answer: any) => void) => {
             this.onOffer(offer.Offer).then((answer: string) => {
               resolve({Answer: answer});
             });
@@ -391,7 +391,7 @@ class OpenTetrisArena extends polymer.Base {
     this.tick = +new Date;
   }
 
-  dup(a) {
+  dup<T>(a: T): T {
     return JSON.parse(JSON.stringify(a));
   }
 
@@ -428,7 +428,7 @@ class OpenTetrisArena extends polymer.Base {
     document.addEventListener('keyup', this.handleKeyUp.bind(this));
   }
 
-  handleKeyDown(e) {
+  handleKeyDown(e: KeyboardEvent) {
     if (!this.ingame) {
       return;
     }
@@ -467,7 +467,7 @@ class OpenTetrisArena extends polymer.Base {
     this.notifyState();
   }
 
-  handleKeyUp(e) {
+  handleKeyUp(e: KeyboardEvent) {
     if (this.keys[e.key]) {
       clearInterval(this.keys[e.key]);
       delete this.keys[e.key];
@@ -478,7 +478,7 @@ class OpenTetrisArena extends polymer.Base {
     e.preventDefault()
   }
 
-  keyTick(key) {
+  keyTick(key: string) {
     switch (key) {
       case 'ArrowLeft':
         this.state.left();

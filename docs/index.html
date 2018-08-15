@@ -16031,11 +16031,12 @@ var TetrisEngine = /** @class */ (function () {
     TetrisEngine.prototype.down = function () {
         this.movePiece(0, 1, 0);
     };
-    TetrisEngine.prototype.rotate = function () {
+    TetrisEngine.prototype.rotate = function (dir) {
+        if (dir === void 0) { dir = 1; }
         var kicks = this.currentPiece.wallKick[this.position.rotation];
         for (var _i = 0, kicks_1 = kicks; _i < kicks_1.length; _i++) {
             var _a = kicks_1[_i], x = _a[0], y = _a[1];
-            if (this.movePiece(x, y, 1)) {
+            if (this.movePiece(x, y, dir)) {
                 break;
             }
         }
@@ -16265,8 +16266,8 @@ var TetrisPiece = /** @class */ (function (_super) {
     function TetrisPiece() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
-    TetrisPiece.prototype.computeColor = function (item, piece) {
-        if (!item || !piece) {
+    TetrisPiece.prototype.computeColor = function (block, piece) {
+        if (!block || !piece) {
             return '';
         }
         return 'background-color: ' + colors_1.COLOR_MAP[piece.color];

@@ -1,4 +1,4 @@
-export const COLOR_MAP = {
+export const COLOR_MAP: {[name: string]: string} = {
   'cyan': '#2aa198',
   'yellow': '#b58900',
   'purple': '#d33682',

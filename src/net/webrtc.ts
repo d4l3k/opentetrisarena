@@ -34,8 +34,8 @@ export class WebRTCConnection implements Connection {
 
   constructor(config: RTCConfiguration) {
     const rtcPeerConnection: typeof window.RTCPeerConnection =
-        window.RTCPeerConnection || window['webkitRTCPeerConnection'] ||
-        window['mozRTCPeerConnection'];
+        window.RTCPeerConnection || (window as any)['webkitRTCPeerConnection'] ||
+        (window as any)['mozRTCPeerConnection'];
     this.peer = new rtcPeerConnection(config);
   }
 

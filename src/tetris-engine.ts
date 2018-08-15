@@ -266,10 +266,10 @@ export class TetrisEngine implements BoardState {
     this.movePiece(0, 1, 0);
   }
 
-  public rotate() {
+  public rotate(dir = 1) {
     const kicks = this.currentPiece.wallKick[this.position.rotation];
     for (const [x, y] of kicks) {
-      if (this.movePiece(x, y, 1)) {
+      if (this.movePiece(x, y, dir)) {
         break;
       }
     }

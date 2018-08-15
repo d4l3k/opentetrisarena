@@ -7,8 +7,8 @@ import {COLOR_MAP} from './colors';
 class TetrisPiece extends polymer.Base {
   @property({type: Object}) piece: Piece;
 
-  public computeColor(item, piece): string {
-    if (!item || !piece) {
+  public computeColor(block: number, piece: Piece): string {
+    if (!block || !piece) {
       return '';
     }
     return 'background-color: ' + COLOR_MAP[piece.color];

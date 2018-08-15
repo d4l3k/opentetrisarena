@@ -1,5 +1,7 @@
 /bower_components/
 node_modules/
+src/**/*.js
+src/**/*.js.map
 out.js
 out.js.map
 out/

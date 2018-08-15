@@ -4,6 +4,7 @@
         "module": "commonjs",
         "experimentalDecorators": true,
         "noImplicitReturns": true,
+        "noImplicitAny": true,
         "pretty": true,
         "sourceMap": true,
         "lib": ["es2017", "dom"]
