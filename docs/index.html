@@ -15009,8 +15009,9 @@ var Conditioner = /** @class */ (function () {
         this.latency = 0;
         // Rate [0,1] of artificially dropped messages (unreliable channel only).
         this.packetLoss = 0;
-        this.receiveTimeoutId = null;
-        this.sendTimeoutId = null;
+        this.onMessage = function () { };
+        this.onOpen = function () { };
+        this.onClose = function () { };
         this.conn = conn;
         conn.onMessage = this.proxyOnMessage.bind(this);
         conn.onOpen = function () {
@@ -15019,8 +15020,12 @@ var Conditioner = /** @class */ (function () {
             }
         };
         conn.onClose = function () {
-            clearTimeout(_this.receiveTimeoutId);
-            clearTimeout(_this.sendTimeoutId);
+            if (_this.receiveTimeoutId) {
+                clearTimeout(_this.receiveTimeoutId);
+            }
+            if (_this.sendTimeoutId) {
+                clearTimeout(_this.sendTimeoutId);
+            }
             if (_this.onClose) {
                 _this.onClose();
             }
@@ -15035,7 +15040,7 @@ var Conditioner = /** @class */ (function () {
             return;
         }
         if (this.latency > 0) {
-            this.receiveTimeoutId = window.setTimeout(function () { _this.onMessage(msg, reliable, bytes); }, this.latency);
+            this.receiveTimeoutId = setTimeout(function () { _this.onMessage(msg, reliable, bytes); }, this.latency);
         }
         else {
             this.onMessage(msg, reliable, bytes);
@@ -15047,13 +15052,16 @@ var Conditioner = /** @class */ (function () {
             return;
         }
         if (this.latency > 0) {
-            this.sendTimeoutId = window.setTimeout(function () { _this.conn.send(msg, reliable); }, this.latency);
+            this.sendTimeoutId =
+                setTimeout(function () { _this.conn.send(msg, reliable); }, this.latency);
         }
         else {
             this.conn.send(msg, reliable);
         }
     };
-    Conditioner.prototype.close = function () { this.conn.close(); };
+    Conditioner.prototype.close = function () {
+        this.conn.close();
+    };
     return Conditioner;
 }());
 exports.Conditioner = Conditioner;
@@ -15086,6 +15094,9 @@ var Loopback = /** @class */ (function () {
 exports.Loopback = Loopback;
 var LoopbackConnection = /** @class */ (function () {
     function LoopbackConnection() {
+        this.onMessage = function () { };
+        this.onOpen = function () { };
+        this.onClose = function () { };
         this.open = false;
     }
     LoopbackConnection.prototype.send = function (msg, reliable) {
@@ -15093,7 +15104,7 @@ var LoopbackConnection = /** @class */ (function () {
             console.error('connection closed');
             return;
         }
-        if (this.receiver.onMessage) {
+        if (this.receiver && this.receiver.onMessage) {
             // Make a copy so that we don't accidentally share memory.
             var copy = JSON.stringify(msg);
             // TODO We don't have any actual network traffic bytes to report, but
@@ -15104,7 +15115,7 @@ var LoopbackConnection = /** @class */ (function () {
     };
     LoopbackConnection.prototype.close = function () {
         this.open = false;
-        if (this.receiver.open) {
+        if (this.receiver && this.receiver.open) {
             this.receiver.close();
         }
         if (this.onClose) {
@@ -15135,8 +15146,12 @@ function unpack(msg) {
 }
 var WebRTCConnection = /** @class */ (function () {
     function WebRTCConnection(config) {
+        this.onMessage = function () { };
+        this.onOpen = function () { };
+        this.onClose = function () { };
         this.open = false;
-        var rtcPeerConnection = window.RTCPeerConnection || window['webkitRTCPeerConnection'] ||
+        var rtcPeerConnection = window.RTCPeerConnection ||
+            window['webkitRTCPeerConnection'] ||
             window['mozRTCPeerConnection'];
         this.peer = new rtcPeerConnection(config);
     }
@@ -15147,6 +15162,9 @@ var WebRTCConnection = /** @class */ (function () {
         }
         var packed = pack({ msg: msg });
         if (reliable) {
+            if (!this.reliable) {
+                return;
+            }
             var packetSize = 1 << 14; // 16KB
             if (packed.length > packetSize) {
                 this.reliable.send(pack({ pieces: Math.ceil(packed.length / packetSize) }));
@@ -15156,17 +15174,20 @@ var WebRTCConnection = /** @class */ (function () {
             }
         }
         else {
+            if (!this.unreliable) {
+                return;
+            }
             this.unreliable.send(packed);
         }
     };
     WebRTCConnection.prototype.close = function () {
         if (this.reliable) {
             this.reliable.close();
-            this.reliable = null;
+            this.reliable = undefined;
         }
         if (this.unreliable) {
             this.unreliable.close();
-            this.unreliable = null;
+            this.unreliable = undefined;
         }
         this.peer.close();
         this.pokeState();
@@ -15180,7 +15201,12 @@ var WebRTCConnection = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             _this.peer.onicecandidate = function (ev) {
                 if (!ev.candidate) {
-                    resolve(_this.peer.localDescription);
+                    if (_this.peer.localDescription) {
+                        resolve(_this.peer.localDescription);
+                    }
+                    else {
+                        reject('no localDescription');
+                    }
                 }
             };
             _this.peer.createOffer(function (offer) {
@@ -15208,7 +15234,12 @@ var WebRTCConnection = /** @class */ (function () {
         return new Promise(function (resolve, reject) {
             _this.peer.onicecandidate = function (ev) {
                 if (!ev.candidate) {
-                    resolve(_this.peer.localDescription);
+                    if (_this.peer.localDescription) {
+                        resolve(_this.peer.localDescription);
+                    }
+                    else {
+                        reject('no localDescription');
+                    }
                 }
             };
             _this.peer.setRemoteDescription(offer, function () {
@@ -15241,13 +15272,15 @@ var WebRTCConnection = /** @class */ (function () {
                 }
                 var data = buf.length ? buf : ev.data;
                 var meta = unpack(data);
-                if (meta.pieces > 0) {
+                if (meta.pieces && meta.pieces > 0) {
                     buf = '';
                     remaining = meta.pieces;
                     return;
                 }
-                // WebRTC transmits strings as UTF-8.
-                _this.onMessage(meta.msg, reliable, data.length);
+                if (meta.msg) {
+                    // WebRTC transmits strings as UTF-8.
+                    _this.onMessage(meta.msg, reliable, data.length);
+                }
                 if (buf.length) {
                     buf = '';
                 }
@@ -15255,7 +15288,7 @@ var WebRTCConnection = /** @class */ (function () {
         };
     };
     WebRTCConnection.prototype.pokeState = function () {
-        var nowOpen = this.reliable && this.unreliable &&
+        var nowOpen = !!this.reliable && !!this.unreliable &&
             this.reliable.readyState == 'open' &&
             this.unreliable.readyState == 'open';
         if (nowOpen != this.open) {
@@ -15315,28 +15348,36 @@ var OpenTetrisArena = /** @class */ (function (_super) {
         _this.welcome = true;
         _this.ishost = false;
         _this.connecting = false;
+        _this.name = '';
         _this.serverHidden = true;
         _this.remoteConns = {};
         _this.boardStates = {};
         _this.nextPlayerID = 1;
         _this.players = {};
         _this.remotePlayers = {};
+        _this.startTime = 0;
         _this.keys = {};
         _this.targetProgress = 0;
         _this.tick = 0;
         return _this;
     }
+    OpenTetrisArena.prototype.send = function (msg, reliable) {
+        if (!this.conn) {
+            throw 'conn undefined';
+        }
+        this.conn.send(msg, reliable);
+    };
     OpenTetrisArena.prototype.start = function () {
         var _this = this;
         this.stop();
-        this.message = null;
+        this.message = undefined;
         this.state = new tetris_engine_1.TetrisEngine();
         this.state.onLineBreak = function (count) {
             count--;
             if (count > 0) {
                 var to = _this.targetPlayer;
                 if (to) {
-                    _this.conn.send({ sendLines: { to: to, count: count } }, true);
+                    _this.send({ sendLines: { to: to, count: count } }, true);
                 }
             }
         };
@@ -15403,15 +15444,15 @@ var OpenTetrisArena = /** @class */ (function (_super) {
     OpenTetrisArena.prototype.stop = function () {
         if (this.lastInterval) {
             clearInterval(this.lastInterval);
-            this.lastInterval = null;
+            this.lastInterval = undefined;
         }
         if (this.lastUnbreakableInterval) {
             clearInterval(this.lastUnbreakableInterval);
-            this.lastUnbreakableInterval = null;
+            this.lastUnbreakableInterval = undefined;
         }
         if (this.lastPlayerTargetInterval) {
             clearInterval(this.lastPlayerTargetInterval);
-            this.lastPlayerTargetInterval = null;
+            this.lastPlayerTargetInterval = undefined;
         }
         if (this.state) {
             this.state.stop();
@@ -15429,12 +15470,11 @@ var OpenTetrisArena = /** @class */ (function (_super) {
         this.broadcast({ start: {} }, true);
     };
     OpenTetrisArena.prototype.sendStop = function (message) {
-        if (message === void 0) { message = null; }
         this.broadcast({ stop: { message: message } }, true);
     };
     OpenTetrisArena.prototype.sendState = function (reliable) {
         if (reliable === void 0) { reliable = false; }
-        this.conn.send({ boardStates: { 'board': this.state } }, reliable);
+        this.send({ boardStates: { 'board': this.state } }, reliable);
     };
     OpenTetrisArena.prototype.broadcast = function (msg, reliable) {
         for (var id in this.remoteConns) {
@@ -15454,7 +15494,7 @@ var OpenTetrisArena = /** @class */ (function (_super) {
         this.ishost = true;
         // Wait for dom-if to propagate.
         setTimeout(function () {
-            _this.shadowRoot.querySelector('#lobby').offer =
+            _this.shadowQuerySelector('#lobby').offer =
                 function (offer, resolve) {
                     _this.onOffer(offer.Offer).then(function (answer) {
                         resolve({ Answer: answer });
@@ -15469,6 +15509,12 @@ var OpenTetrisArena = /** @class */ (function (_super) {
             _this.boardStates = {};
         }, BOARD_UPDATE_TIME);
     };
+    OpenTetrisArena.prototype.shadowQuerySelector = function (query) {
+        if (!this.shadowRoot) {
+            throw 'missing shadowRoot';
+        }
+        return this.shadowRoot.querySelector(query);
+    };
     OpenTetrisArena.prototype.join = function () {
         var _this = this;
         if (!this.token && this.serverToken) {
@@ -15479,19 +15525,19 @@ var OpenTetrisArena = /** @class */ (function (_super) {
         }
         this.connecting = true;
         this.welcome = false;
-        this.joinError = null;
+        this.joinError = undefined;
         var con = new webrtc_1.WebRTCConnection(webrtc_config_1.RTC_CONFIG);
         con.onOpen = function () {
             _this.setConnection(con);
         };
         con.makeOffer()
-            .then(function (offer) { return _this.shadowRoot.querySelector('#lobbyList')
+            .then(function (offer) { return _this.shadowQuerySelector('#lobbyList')
             .connect(_this.token, webrtc_1.encodeRSD(offer), ''); })
             .then(function (resp) {
             return con.takeAnswer(webrtc_1.decodeRSD(resp.Answer));
         })
             .catch(function (err) {
-            con.onOpen = null;
+            con.onOpen = function () { };
             console.log(err);
             _this.connecting = false;
             _this.welcome = true;
@@ -15553,7 +15599,7 @@ var OpenTetrisArena = /** @class */ (function (_super) {
                 }
             }
             if (msg.players) {
-                _this.players = null;
+                _this.players = {};
                 _this.players = msg.players;
             }
             if (msg.addLines) {
@@ -15599,7 +15645,7 @@ var OpenTetrisArena = /** @class */ (function (_super) {
                     remotePlayer.timeAlive = (+new Date - _this.startTime) / 1000;
                     _this.broadcastPlayers();
                 }
-                remotePlayer.over = state.over;
+                remotePlayer.over = !!state.over;
                 _this.boardStates[playerID] = state;
                 _this.checkForWin();
             }
@@ -15626,7 +15672,7 @@ var OpenTetrisArena = /** @class */ (function (_super) {
     };
     OpenTetrisArena.prototype.notifyState = function () {
         var state = this.state;
-        this.state = null;
+        this.state = {};
         this.state = state;
         this.tick = +new Date;
     };
@@ -15918,6 +15964,7 @@ var PIECES = [
 // Rotation is specified as the number of clockwise 90deg increments.
 // 0 = 0deg, 1 = 90deg, 2 = 180deg, 3 = 270deg.
 function matrixRotate(m, rotation) {
+    if (rotation === void 0) { rotation = 0; }
     rotation = rotation % 4;
     var w = matrixWidth(m), h = matrixHeight(m);
     var rw = w, rh = h;
@@ -15925,7 +15972,7 @@ function matrixRotate(m, rotation) {
         rw = h;
         rh = w;
     }
-    var rm = matrixNew(rw, rh, null);
+    var rm = matrixNew(rw, rh, {});
     var deg = rotation * Math.PI / 2;
     var rotationMatrix = [
         Math.cos(deg),
@@ -15998,7 +16045,7 @@ var TetrisEngine = /** @class */ (function () {
                 this.stop();
                 return;
             }
-            this.currentPiece = null;
+            this.currentPiece = undefined;
             this.checkSolved();
             this.tick();
         }
@@ -16015,6 +16062,9 @@ var TetrisEngine = /** @class */ (function () {
             return;
         }
         this.hasSwapped = true;
+        if (!this.position || !this.currentPiece) {
+            throw new Error('missing position or currentPiece');
+        }
         this.clearPattern(this.position, this.currentPiece.block);
         var cur = this.currentPiece;
         this.currentPiece = this.savedPiece;
@@ -16033,6 +16083,12 @@ var TetrisEngine = /** @class */ (function () {
     };
     TetrisEngine.prototype.rotate = function (dir) {
         if (dir === void 0) { dir = 1; }
+        if (!this.position || !this.currentPiece) {
+            throw new Error('missing position or currentPiece');
+        }
+        if (this.position.rotation == null) {
+            throw new Error('position missing rotation');
+        }
         var kicks = this.currentPiece.wallKick[this.position.rotation];
         for (var _i = 0, kicks_1 = kicks; _i < kicks_1.length; _i++) {
             var _a = kicks_1[_i], x = _a[0], y = _a[1];
@@ -16158,6 +16214,12 @@ var TetrisEngine = /** @class */ (function () {
         if (this.over) {
             return false;
         }
+        if (!this.position || !this.currentPiece) {
+            throw new Error('missing position or currentPiece');
+        }
+        if (this.position.rotation == null) {
+            throw new Error('position missing rotation');
+        }
         var _a = this.position, x = _a.x, y = _a.y, rotation = _a.rotation;
         var newPos = { x: x + dx, y: y + dy, rotation: (rotation + drot) % 4 };
         this.clearPattern(this.position, this.currentPiece.block);
@@ -16175,10 +16237,9 @@ var TetrisEngine = /** @class */ (function () {
     };
     TetrisEngine.prototype.pieceCollides = function (pos, piece) { };
     TetrisEngine.prototype.row = function (cell) {
-        if (cell === void 0) { cell = null; }
         var row = [];
         for (var j = 0; j < WIDTH; j++) {
-            row.push(cell);
+            row.push(cell || null);
         }
         return row;
     };

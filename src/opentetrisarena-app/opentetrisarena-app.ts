@@ -24,33 +24,40 @@ class OpenTetrisArena extends polymer.Base {
   private welcome: boolean = true;
   private ishost: boolean = false;
   private connecting: boolean = false;
-  private name: string;
+  private name: string = '';
   private serverHidden: boolean = true;
   private remoteConns: {[id: string]: Connection} = {};
   private boardStates: {[id: string]: BoardState} = {};
-  private conn: Connection;
+  private conn?: Connection;
   private nextPlayerID: number = 1;
-  private token: string;
+  private token?: string;
   private players: {[id: string]: Player} = {};
   private remotePlayers: {[id: string]: Player} = {};
-  private message: string;
-  private startTime: number;
-  private playerID: string;
-  private joinError: string;
-  private serverToken: string;
+  private message?: string;
+  private startTime: number = 0;
+  private playerID?: string;
+  private joinError?: string;
+  private serverToken?: string;
   private keys: {[key: string]: any} = {};
 
-  private lastInterval: NodeJS.Timer;
-  private lastUnbreakableInterval: NodeJS.Timer;
+  private lastInterval?: NodeJS.Timer;
+  private lastUnbreakableInterval?: NodeJS.Timer;
 
   private targetProgress: number = 0;
-  private targetPlayer: string;
-  private lastPlayerTargetInterval: NodeJS.Timer;
+  private targetPlayer?: string;
+  private lastPlayerTargetInterval?: NodeJS.Timer;
   private tick: number = 0;
+
+  private send(msg: any, reliable: boolean) {
+    if (!this.conn) {
+      throw 'conn undefined';
+    }
+    this.conn.send(msg, reliable);
+  }
 
   start() {
     this.stop();
-    this.message = null;
+    this.message = undefined;
 
     this.state = new TetrisEngine();
     this.state.onLineBreak = (count: number) => {
@@ -58,7 +65,7 @@ class OpenTetrisArena extends polymer.Base {
       if (count > 0) {
         const to = this.targetPlayer;
         if (to) {
-          this.conn.send({sendLines: {to, count}}, true);
+          this.send({sendLines: {to, count}}, true);
         }
       }
     };
@@ -132,17 +139,17 @@ class OpenTetrisArena extends polymer.Base {
   stop() {
     if (this.lastInterval) {
       clearInterval(this.lastInterval);
-      this.lastInterval = null;
+      this.lastInterval = undefined;
     }
 
     if (this.lastUnbreakableInterval) {
       clearInterval(this.lastUnbreakableInterval);
-      this.lastUnbreakableInterval = null;
+      this.lastUnbreakableInterval = undefined;
     }
 
     if (this.lastPlayerTargetInterval) {
       clearInterval(this.lastPlayerTargetInterval);
-      this.lastPlayerTargetInterval = null;
+      this.lastPlayerTargetInterval = undefined;
     }
 
     if (this.state) {
@@ -162,12 +169,12 @@ class OpenTetrisArena extends polymer.Base {
     this.broadcast({start: {}}, true);
   }
 
-  sendStop(message: string = null) {
+  sendStop(message?: string) {
     this.broadcast({stop: {message}}, true);
   }
 
   sendState(reliable: boolean = false) {
-    this.conn.send({boardStates: {'board': this.state}}, reliable);
+    this.send({boardStates: {'board': this.state}}, reliable);
   }
 
   broadcast(msg: Message, reliable: boolean) {
@@ -191,7 +198,7 @@ class OpenTetrisArena extends polymer.Base {
 
     // Wait for dom-if to propagate.
     setTimeout(() => {
-      (this.shadowRoot.querySelector('#lobby') as any).offer =
+      (this.shadowQuerySelector('#lobby') as any).offer =
           (offer: {Offer: string}, resolve: (answer: any) => void) => {
             this.onOffer(offer.Offer).then((answer: string) => {
               resolve({Answer: answer});
@@ -208,6 +215,13 @@ class OpenTetrisArena extends polymer.Base {
     }, BOARD_UPDATE_TIME);
   }
 
+  private shadowQuerySelector(query: string): Element|null {
+    if (!this.shadowRoot) {
+      throw 'missing shadowRoot'
+    }
+    return this.shadowRoot.querySelector(query);
+  }
+
   join() {
     if (!this.token && this.serverToken) {
       this.token = this.serverToken;
@@ -218,7 +232,7 @@ class OpenTetrisArena extends polymer.Base {
 
     this.connecting = true;
     this.welcome = false;
-    this.joinError = null;
+    this.joinError = undefined;
 
     const con = new WebRTCConnection(RTC_CONFIG);
 
@@ -228,13 +242,13 @@ class OpenTetrisArena extends polymer.Base {
 
     con.makeOffer()
         .then(
-            offer => (this.shadowRoot.querySelector('#lobbyList') as any)
+            offer => (this.shadowQuerySelector('#lobbyList') as any)
                          .connect(this.token, encodeRSD(offer), ''))
         .then((resp: {Answer: string}) => {
           return con.takeAnswer(decodeRSD(resp.Answer));
         })
         .catch(err => {
-          con.onOpen = null;
+          con.onOpen = () => {};
           console.log(err);
           this.connecting = false;
           this.welcome = true;
@@ -301,7 +315,7 @@ class OpenTetrisArena extends polymer.Base {
       }
 
       if (msg.players) {
-        this.players = null;
+        this.players = {};
         this.players = msg.players;
       }
 
@@ -356,7 +370,7 @@ class OpenTetrisArena extends polymer.Base {
           remotePlayer.timeAlive = (+new Date - this.startTime) / 1000;
           this.broadcastPlayers();
         }
-        remotePlayer.over = state.over;
+        remotePlayer.over = !!state.over;
         this.boardStates[playerID] = state;
         this.checkForWin();
       }
@@ -386,7 +400,7 @@ class OpenTetrisArena extends polymer.Base {
 
   notifyState() {
     var state = this.state;
-    this.state = null;
+    this.state = {} as TetrisEngine;
     this.state = state;
     this.tick = +new Date;
   }

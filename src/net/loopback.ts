@@ -26,10 +26,11 @@ export class Loopback {
 }
 
 class LoopbackConnection implements Connection {
-  onMessage: (msg: Message, reliable: boolean, bytes: number) => void;
-  onOpen: () => void;
-  onClose: () => void;
-  receiver: LoopbackConnection;
+  onMessage:
+      (msg: Message, reliable: boolean, bytes: number) => void = () => {};
+  onOpen: () => void = () => {};
+  onClose: () => void = () => {};
+  receiver?: LoopbackConnection;
   open = false;
 
   send(msg: Message, reliable: boolean) {
@@ -37,7 +38,7 @@ class LoopbackConnection implements Connection {
       console.error('connection closed');
       return;
     }
-    if (this.receiver.onMessage) {
+    if (this.receiver && this.receiver.onMessage) {
       // Make a copy so that we don't accidentally share memory.
       const copy = JSON.stringify(msg);
       // TODO We don't have any actual network traffic bytes to report, but
@@ -49,7 +50,7 @@ class LoopbackConnection implements Connection {
 
   close() {
     this.open = false;
-    if (this.receiver.open) {
+    if (this.receiver && this.receiver.open) {
       this.receiver.close()
     }
     if (this.onClose) {

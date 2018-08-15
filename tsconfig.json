@@ -5,6 +5,7 @@
         "experimentalDecorators": true,
         "noImplicitReturns": true,
         "noImplicitAny": true,
+        "strict": true,
         "pretty": true,
         "sourceMap": true,
         "lib": ["es2017", "dom"]

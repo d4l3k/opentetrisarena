@@ -13,7 +13,7 @@ export interface BoardState {
   savedPiece?: Piece
   currentPiece?: Piece
   upcomingPieces: Piece[]
-  grid: Cell[][]
+  grid: (Cell|null)[][]
   over?: boolean
   message?: string
 }

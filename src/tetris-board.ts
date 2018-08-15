@@ -5,11 +5,11 @@ import {COLOR_MAP} from './colors';
 
 @component('tetris-board')
 class TetrisBoard extends polymer.Base {
-  @property({type: Object}) state: BoardState;
-  @property({type: Array}) subStates: BoardState[];
-  @property({type: Boolean, value: false}) small: boolean;
-  @property({type: Boolean, value: false}) selected: boolean;
-  @property({type: Number, value: 0}) progress: number;
+  @property({type: Object}) state?: BoardState;
+  @property({type: Array}) subStates?: BoardState[];
+  @property({type: Boolean, value: false}) small?: boolean;
+  @property({type: Boolean, value: false}) selected?: boolean;
+  @property({type: Number, value: 0}) progress?: number;
 
   public computeColor(item: Cell) {
     if (!item) {

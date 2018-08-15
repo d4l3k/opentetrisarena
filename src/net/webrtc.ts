@@ -23,18 +23,20 @@ interface MetaMessage {
 }
 
 export class WebRTCConnection implements Connection {
-  onMessage: (msg: Message, reliable: boolean, bytes: number) => void;
-  onOpen: () => void;
-  onClose: () => void;
+  onMessage:
+      (msg: Message, reliable: boolean, bytes: number) => void = () => {};
+  onOpen: () => void = () => {};
+  onClose: () => void = () => {};
 
   private peer: RTCPeerConnection;
-  private reliable: RTCDataChannel;
-  private unreliable: RTCDataChannel;
+  private reliable?: RTCDataChannel;
+  private unreliable?: RTCDataChannel;
   private open = false;
 
   constructor(config: RTCConfiguration) {
     const rtcPeerConnection: typeof window.RTCPeerConnection =
-        window.RTCPeerConnection || (window as any)['webkitRTCPeerConnection'] ||
+        window.RTCPeerConnection ||
+        (window as any)['webkitRTCPeerConnection'] ||
         (window as any)['mozRTCPeerConnection'];
     this.peer = new rtcPeerConnection(config);
   }
@@ -46,6 +48,9 @@ export class WebRTCConnection implements Connection {
     }
     const packed = pack({msg: msg});
     if (reliable) {
+      if (!this.reliable) {
+        return;
+      }
       const packetSize = 1 << 14;  // 16KB
       if (packed.length > packetSize) {
         this.reliable.send(
@@ -55,6 +60,9 @@ export class WebRTCConnection implements Connection {
         this.reliable.send(packed.substr(i, packetSize));
       }
     } else {
+      if (!this.unreliable) {
+        return;
+      }
       this.unreliable.send(packed);
     }
   }
@@ -62,11 +70,11 @@ export class WebRTCConnection implements Connection {
   close() {
     if (this.reliable) {
       this.reliable.close();
-      this.reliable = null;
+      this.reliable = undefined;
     }
     if (this.unreliable) {
       this.unreliable.close();
-      this.unreliable = null;
+      this.unreliable = undefined;
     }
     this.peer.close();
     this.pokeState();
@@ -82,11 +90,16 @@ export class WebRTCConnection implements Connection {
     return new Promise((resolve, reject) => {
       this.peer.onicecandidate = (ev: RTCPeerConnectionIceEvent) => {
         if (!ev.candidate) {
-          resolve(this.peer.localDescription);
+          if (this.peer.localDescription) {
+            resolve(this.peer.localDescription);
+          } else {
+            reject('no localDescription')
+          }
         }
       };
       this.peer.createOffer(offer => {
-        this.peer.setLocalDescription(offer, () => {}, reject);
+        this.peer.setLocalDescription(
+            offer as RTCSessionDescriptionInit, () => {}, reject);
       }, reject);
     });
   }
@@ -109,12 +122,17 @@ export class WebRTCConnection implements Connection {
     return new Promise((resolve, reject) => {
       this.peer.onicecandidate = (ev: RTCPeerConnectionIceEvent) => {
         if (!ev.candidate) {
-          resolve(this.peer.localDescription);
+          if (this.peer.localDescription) {
+            resolve(this.peer.localDescription);
+          } else {
+            reject('no localDescription')
+          }
         }
       };
-      this.peer.setRemoteDescription(offer, () => {
+      this.peer.setRemoteDescription(offer as RTCSessionDescriptionInit, () => {
         this.peer.createAnswer(answer => {
-          this.peer.setLocalDescription(answer, () => {}, reject);
+          this.peer.setLocalDescription(
+              answer as RTCSessionDescriptionInit, () => {}, reject);
         }, reject);
       }, reject);
     });
@@ -122,7 +140,8 @@ export class WebRTCConnection implements Connection {
 
   takeAnswer(answer: RTCSessionDescription): Promise<{}> {
     return new Promise((resolve, reject) => {
-      this.peer.setRemoteDescription(answer, resolve, reject);
+      this.peer.setRemoteDescription(
+          answer as RTCSessionDescriptionInit, resolve, reject);
     });
   }
 
@@ -142,13 +161,15 @@ export class WebRTCConnection implements Connection {
         }
         const data = buf.length ? buf : ev.data;
         const meta = unpack(data);
-        if (meta.pieces > 0) {
+        if (meta.pieces && meta.pieces > 0) {
           buf = '';
           remaining = meta.pieces;
           return;
         }
-        // WebRTC transmits strings as UTF-8.
-        this.onMessage(meta.msg, reliable, data.length);
+        if (meta.msg) {
+          // WebRTC transmits strings as UTF-8.
+          this.onMessage(meta.msg, reliable, data.length);
+        }
         if (buf.length) {
           buf = '';
         }
@@ -157,7 +178,7 @@ export class WebRTCConnection implements Connection {
   }
 
   private pokeState() {
-    const nowOpen = this.reliable && this.unreliable &&
+    const nowOpen = !!this.reliable && !!this.unreliable &&
         this.reliable.readyState == 'open' &&
         this.unreliable.readyState == 'open';
     if (nowOpen != this.open) {

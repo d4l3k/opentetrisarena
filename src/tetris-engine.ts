@@ -120,7 +120,7 @@ const PIECES: Piece[] = [
 // matrixRotation returns a new matrix with the desired rotation applied.
 // Rotation is specified as the number of clockwise 90deg increments.
 // 0 = 0deg, 1 = 90deg, 2 = 180deg, 3 = 270deg.
-function matrixRotate<T>(m: T[][], rotation: number): T[][] {
+function matrixRotate<T>(m: T[][], rotation: number = 0): T[][] {
   rotation = rotation % 4;
   const w = matrixWidth(m), h = matrixHeight(m);
   let rw = w, rh = h;
@@ -128,7 +128,7 @@ function matrixRotate<T>(m: T[][], rotation: number): T[][] {
     rw = h;
     rh = w;
   }
-  const rm = matrixNew(rw, rh, null);
+  const rm = matrixNew(rw, rh, {} as T);
   const deg = rotation * Math.PI / 2;
   const rotationMatrix = [
     Math.cos(deg),
@@ -185,16 +185,16 @@ interface LineRequest {
 }
 
 export class TetrisEngine implements BoardState {
-  public grid: Cell[][];
-  public savedPiece: Piece;
-  public currentPiece: Piece;
+  public grid: (Cell|null)[][];
+  public savedPiece?: Piece;
+  public currentPiece?: Piece;
   public upcomingPieces: Piece[] = [];
   public over: boolean = false;
   public lineRequests: LineRequest[] = [];
-  public message: string;
-  public onLineBreak: (count: number) => void;
+  public message?: string;
+  public onLineBreak?: (count: number) => void;
 
-  private position: Position;
+  private position?: Position;
   private bag: Piece[] = [];
   private hasSwapped: boolean = false;
 
@@ -225,7 +225,7 @@ export class TetrisEngine implements BoardState {
         this.stop();
         return;
       }
-      this.currentPiece = null;
+      this.currentPiece = undefined;
       this.checkSolved();
       this.tick();
     }
@@ -246,6 +246,9 @@ export class TetrisEngine implements BoardState {
     }
     this.hasSwapped = true;
 
+    if (!this.position || !this.currentPiece) {
+      throw new Error('missing position or currentPiece');
+    }
     this.clearPattern(this.position, this.currentPiece.block);
     const cur = this.currentPiece;
     this.currentPiece = this.savedPiece;
@@ -267,6 +270,12 @@ export class TetrisEngine implements BoardState {
   }
 
   public rotate(dir = 1) {
+    if (!this.position || !this.currentPiece) {
+      throw new Error('missing position or currentPiece');
+    }
+    if (this.position.rotation == null) {
+      throw new Error('position missing rotation');
+    }
     const kicks = this.currentPiece.wallKick[this.position.rotation];
     for (const [x, y] of kicks) {
       if (this.movePiece(x, y, dir)) {
@@ -318,7 +327,7 @@ export class TetrisEngine implements BoardState {
     this.applyPattern(pos, m, null);
   }
 
-  private applyPattern(pos: Position, m: number[][], val: Cell) {
+  private applyPattern(pos: Position, m: number[][], val: Cell|null) {
     m = matrix.rotate(m, pos.rotation);
     const w = matrix.width(m);
     const h = matrix.height(m);
@@ -403,6 +412,13 @@ export class TetrisEngine implements BoardState {
       return false;
     }
 
+    if (!this.position || !this.currentPiece) {
+      throw new Error('missing position or currentPiece');
+    }
+    if (this.position.rotation == null) {
+      throw new Error('position missing rotation');
+    }
+
     const {x, y, rotation} = this.position;
     const newPos = {x: x + dx, y: y + dy, rotation: (rotation + drot) % 4};
     this.clearPattern(this.position, this.currentPiece.block);
@@ -421,10 +437,10 @@ export class TetrisEngine implements BoardState {
 
   private pieceCollides(pos: Position, piece: Piece) {}
 
-  private row(cell: Cell = null): Cell[] {
+  private row(cell?: Cell): (Cell|null)[] {
     const row = [];
     for (let j = 0; j < WIDTH; j++) {
-      row.push(cell);
+      row.push(cell || null);
     }
     return row;
   }
@@ -470,7 +486,7 @@ export class TetrisEngine implements BoardState {
     }
   }
 
-  private randomPiece() {
+  private randomPiece(): Piece {
     if (this.bag.length == 0) {
       // Add pieces to bag.
       for (let piece of PIECES) {
@@ -485,6 +501,6 @@ export class TetrisEngine implements BoardState {
         this.bag[j] = p;
       }
     }
-    return this.bag.pop();
+    return this.bag.pop() as Piece;
   }
 }

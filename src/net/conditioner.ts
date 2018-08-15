@@ -9,12 +9,13 @@ export class Conditioner implements Connection {
   // Rate [0,1] of artificially dropped messages (unreliable channel only).
   packetLoss: number = 0;
 
-  onMessage: (msg: Message, reliable: boolean, bytes: number) => void;
-  onOpen: () => void;
-  onClose: () => void;
+  public onMessage:
+      (msg: Message, reliable: boolean, bytes: number) => void = () => {};
+  public onOpen: () => void = () => {};
+  public onClose: () => void = () => {};
   private conn: Connection;
-  private receiveTimeoutId: number = null;
-  private sendTimeoutId: number = null;
+  private receiveTimeoutId?: NodeJS.Timer;
+  private sendTimeoutId?: NodeJS.Timer;
 
   constructor(conn: Connection) {
     this.conn = conn;
@@ -25,8 +26,12 @@ export class Conditioner implements Connection {
       }
     };
     conn.onClose = () => {
-      clearTimeout(this.receiveTimeoutId);
-      clearTimeout(this.sendTimeoutId);
+      if (this.receiveTimeoutId) {
+        clearTimeout(this.receiveTimeoutId);
+      }
+      if (this.sendTimeoutId) {
+        clearTimeout(this.sendTimeoutId);
+      }
       if (this.onClose) {
         this.onClose();
       }
@@ -41,7 +46,7 @@ export class Conditioner implements Connection {
       return;
     }
     if (this.latency > 0) {
-      this.receiveTimeoutId = window.setTimeout(
+      this.receiveTimeoutId = setTimeout(
           () => {this.onMessage(msg, reliable, bytes)}, this.latency);
     } else {
       this.onMessage(msg, reliable, bytes);
@@ -53,12 +58,14 @@ export class Conditioner implements Connection {
       return;
     }
     if (this.latency > 0) {
-      this.sendTimeoutId = window.setTimeout(
-          () => {this.conn.send(msg, reliable)}, this.latency);
+      this.sendTimeoutId =
+          setTimeout(() => {this.conn.send(msg, reliable)}, this.latency);
     } else {
       this.conn.send(msg, reliable);
     }
   }
 
-  close(): void { this.conn.close(); }
+  close(): void {
+    this.conn.close();
+  }
 }
