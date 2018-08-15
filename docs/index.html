@@ -15726,6 +15726,12 @@ var OpenTetrisArena = /** @class */ (function (_super) {
             case 'ArrowUp':
                 this.state.rotate();
                 break;
+            case 'z':
+                this.state.rotate(-1);
+                break;
+            case 'x':
+                this.state.rotate(1);
+                break;
             default:
                 if (!this.keys[e.key]) {
                     var tick_1 = 0;
@@ -16221,7 +16227,8 @@ var TetrisEngine = /** @class */ (function () {
             throw new Error('position missing rotation');
         }
         var _a = this.position, x = _a.x, y = _a.y, rotation = _a.rotation;
-        var newPos = { x: x + dx, y: y + dy, rotation: (rotation + drot) % 4 };
+        var numRotations = 4;
+        var newPos = { x: x + dx, y: y + dy, rotation: (rotation + drot + numRotations) % numRotations };
         this.clearPattern(this.position, this.currentPiece.block);
         var cell = {
             color: this.currentPiece.color,

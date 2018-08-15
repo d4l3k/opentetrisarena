@@ -462,6 +462,14 @@ class OpenTetrisArena extends polymer.Base {
         this.state.rotate();
         break;
 
+      case 'z':
+        this.state.rotate(-1);
+        break;
+
+      case 'x':
+        this.state.rotate(1);
+        break;
+
       default:
         if (!this.keys[e.key]) {
           let tick = 0;

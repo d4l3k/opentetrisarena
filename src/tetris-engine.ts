@@ -420,7 +420,8 @@ export class TetrisEngine implements BoardState {
     }
 
     const {x, y, rotation} = this.position;
-    const newPos = {x: x + dx, y: y + dy, rotation: (rotation + drot) % 4};
+    const numRotations = 4;
+    const newPos = {x: x + dx, y: y + dy, rotation: (rotation + drot + numRotations) % numRotations};
     this.clearPattern(this.position, this.currentPiece.block);
     const cell = {
       color: this.currentPiece.color,
