@@ -1,6 +1,6 @@
 /bower_components/
 node_modules/
-*.js
-*.js.map
+out.js
+out.js.map
 out/
 *.log
