@@ -1,5 +1,7 @@
-# opentetrisarena
-An open source webrtc based implementation of Tetris Arena
+# opentetrisarena [![Build Status](https://travis-ci.org/d4l3k/opentetrisarena.svg?branch=master)](https://travis-ci.org/d4l3k/opentetrisarena)
+An open source webrtc based implementation of Tetris Arena.
+
+https://opentetrisarena.fn.lc
 
 
 ## License
